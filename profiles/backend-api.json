@@ -1,0 +1,13 @@
+{
+  "name": "backend-api",
+  "title": "Backend API",
+  "description": "HTTP API exposing business capabilities (REST/JSON).",
+  "agents": ["00-master", "02-backend", "04-architecture", "05-quality", "06-solid-patterns", "07-oop", "08-performance", "09-security", "10-testing", "11-documentation", "12-devops", "13-observability", "14-code-review"],
+  "agents_if_database": ["03-database"],
+  "rules": ["coding", "architecture", "security", "testing", "performance", "documentation"],
+  "workflows": ["new-project", "new-feature", "bug-fix", "refactoring", "security-audit", "release"],
+  "technologies": ["python-fastapi", "python-django", "python-flask", "node-typescript", "custom"],
+  "stacks": [],
+  "template": "backend",
+  "structure": ["src/{{package_name}}/api", "src/{{package_name}}/application", "src/{{package_name}}/domain", "src/{{package_name}}/infrastructure", "tests/unit", "tests/integration", "deploy"]
+}

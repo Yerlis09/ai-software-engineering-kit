@@ -1,0 +1,4 @@
+{
+  "_comment": "Template outputs listed here are CORE (kit-managed, refreshed by 'ai-project update'). Every other template output is a SEED: created once, then owned by the project.",
+  "managed": ["AGENTS.md", ".ai/README.md"]
+}

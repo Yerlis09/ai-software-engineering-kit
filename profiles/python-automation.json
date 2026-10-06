@@ -1,0 +1,13 @@
+{
+  "name": "python-automation",
+  "title": "Python Automation",
+  "description": "Scripts, scheduled jobs, integrations and internal tooling in Python.",
+  "agents": ["00-master", "04-architecture", "05-quality", "06-solid-patterns", "07-oop", "08-performance", "09-security", "10-testing", "11-documentation", "12-devops", "13-observability", "14-code-review"],
+  "agents_if_database": ["03-database"],
+  "rules": ["coding", "architecture", "security", "testing", "performance", "documentation"],
+  "workflows": ["new-project", "new-feature", "bug-fix", "refactoring", "security-audit", "release"],
+  "technologies": ["python", "python-fastapi", "python-data", "custom"],
+  "stacks": [],
+  "template": "automation",
+  "structure": ["src/{{package_name}}/jobs", "src/{{package_name}}/services", "src/{{package_name}}/adapters", "src/{{package_name}}/config", "tests/unit", "tests/integration", "deploy"]
+}

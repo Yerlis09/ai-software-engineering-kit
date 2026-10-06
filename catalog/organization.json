@@ -1,0 +1,9 @@
+{
+  "name": "NetSF",
+  "git_server": "git.netsf.fr",
+  "security_contact": "vincent.goutagny@netsf.fr",
+  "deploy_environments": "RKE Staging, RKE Prod",
+  "preferred_frontend": "HTML, JavaScript, React",
+  "preferred_backend": "Python",
+  "preferred_serving": "NGINX + uWSGI"
+}

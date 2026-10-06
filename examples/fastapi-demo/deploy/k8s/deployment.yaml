@@ -1,0 +1,50 @@
+# Base manifest; staging/prod overlays set the namespace and the immutable image tag.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-demo
+  labels: { app: fastapi-demo }
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: fastapi-demo }
+  template:
+    metadata:
+      labels: { app: fastapi-demo }
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: api
+          image: registry.example.internal/fastapi-demo:0.1.0  # replaced by overlays
+          ports:
+            - containerPort: 8000
+          env:
+            - name: LOG_LEVEL
+              value: INFO
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: 500m, memory: 256Mi }
+          readinessProbe:
+            httpGet: { path: /health/ready, port: 8000 }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8000 }
+            periodSeconds: 20
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fastapi-demo
+spec:
+  selector: { app: fastapi-demo }
+  ports:
+    - port: 80
+      targetPort: 8000

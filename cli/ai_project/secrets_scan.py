@@ -1,0 +1,207 @@
+"""Heuristic secret detection used by ``doctor``.
+
+This is a safety net ("no *obvious* exposed secrets"), not a replacement for a real
+scanner such as gitleaks or trufflehog in CI. Lines can be allow-listed with the
+pragma ``ai-kit: allow-secret`` (for test fixtures), which reviewers should challenge.
+"""
+
+from __future__ import annotations
+
+import os
+import re
+from dataclasses import dataclass
+from pathlib import Path
+
+ALLOW_PRAGMA = "ai-kit: allow-secret"
+MAX_FILE_BYTES = 1_000_000
+
+SKIP_DIRS = {
+    ".git",
+    "node_modules",
+    ".venv",
+    "venv",
+    "env",
+    "__pycache__",
+    "dist",
+    "build",
+    ".tox",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".idea",
+    ".next",
+    "coverage",
+    "htmlcov",
+    ".angular",
+    "site-packages",
+}
+# Kit knowledge contains security *examples*; it is reviewed upstream, not per project.
+SKIP_PREFIXES = (".ai/agents/", ".ai/rules/", ".ai/workflows/", ".ai/stacks/")
+
+CONFIG_SUFFIXES = {
+    ".py",
+    ".js",
+    ".mjs",
+    ".cjs",
+    ".ts",
+    ".tsx",
+    ".jsx",
+    ".json",
+    ".yml",
+    ".yaml",
+    ".toml",
+    ".ini",
+    ".cfg",
+    ".conf",
+    ".properties",
+    ".sh",
+    ".ps1",
+    ".bat",
+    ".cmd",
+    ".xml",
+    ".tf",
+    ".java",
+    ".cs",
+    ".go",
+    ".rb",
+    ".php",
+    ".sql",
+}
+CONFIG_NAMES = {"Dockerfile", "docker-compose.yml", "docker-compose.yaml", "uwsgi.ini"}
+
+# High-confidence token formats: checked in every text file.
+STRONG_PATTERNS = {
+    "private key": re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----"),
+    "AWS access key": re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
+    "GitHub token": re.compile(r"\bgh[pousr]_[A-Za-z0-9]{36,}\b"),
+    "GitLab token": re.compile(r"\bglpat-[A-Za-z0-9_-]{20,}\b"),
+    "Slack token": re.compile(r"\bxox[abposr]-[A-Za-z0-9-]{10,}\b"),
+    "Google API key": re.compile(r"\bAIza[0-9A-Za-z_-]{35}\b"),
+    "credentials in URL": re.compile(r"\b[a-z][a-z0-9+.-]*://[^\s:/@'\"]+:([^\s:/@'\"]{3,})@"),
+}
+# Generic `password = "..."` style assignments: only checked in code/config files.
+# The optional group skips a type annotation (`password: str = "..."`).
+ASSIGNMENT = re.compile(
+    r"(?i)(?P<key>[\w.-]*(?:password|passwd|pwd|secret|api[_-]?key|apikey|access[_-]?key"
+    r"|auth[_-]?token|token|credential)[\w.-]*)[\"']?\s*"
+    r"(?::\s*[A-Za-z_][\w\[\]., |]*?\s*(?==))?"
+    r"[:=]\s*[\"']?(?P<value>[^\s\"'`,;#]{6,})"
+)
+TYPE_EXPRESSION = re.compile(r"[A-Za-z_][\w.]*\[[\w\[\]., |]*\]")  # list[Finding], Optional[str]
+PLACEHOLDER_HINTS = (
+    "example",
+    "changeme",
+    "change_me",
+    "change-me",
+    "placeholder",
+    "your",
+    "xxx",
+    "dummy",
+    "redacted",
+    "***",
+    "todo",
+    "replace",
+    "fake",
+    "sample",
+    "secret_here",
+    "<",
+    "${",
+    "{{",
+    "%(",
+    "environ",
+    "getenv",
+    "process.env",
+    "settings.",
+    "config.",
+    "vault:",
+    "none",
+    "null",
+    "true",
+    "false",
+    "http://",
+    "https://",
+)
+
+
+@dataclass(frozen=True)
+class Finding:
+    path: str
+    line: int
+    kind: str
+    in_env_file: bool
+
+
+def is_env_file(name: str) -> bool:
+    lowered = name.lower()
+    if not (lowered == ".env" or lowered.startswith(".env.") or lowered.endswith(".env")):
+        return False
+    return not lowered.endswith((".example", ".sample", ".template", ".dist"))
+
+
+def _looks_like_placeholder(value: str) -> bool:
+    lowered = value.lower()
+    if any(hint in lowered for hint in PLACEHOLDER_HINTS):
+        return True
+    if "(" in value or value.startswith(("$", "%", "@")):
+        return True  # function call, variable reference
+    if TYPE_EXPRESSION.fullmatch(value):
+        return True  # a type annotation, not a value
+    if re.fullmatch(r"[A-Za-z_][\w]*(\.[\w]+)+", value):
+        return True  # attribute access such as settings.db.password
+    if re.fullmatch(r"[a-z]+(_[a-z]+)*", value) and len(value) < 20:
+        return True  # an identifier like `get_token`, `str`, `required`
+    return value.isdigit() and len(value) < 8
+
+
+def iter_files(root: Path):
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
+        for filename in filenames:
+            path = Path(dirpath) / filename
+            rel = path.relative_to(root).as_posix()
+            if rel.startswith(SKIP_PREFIXES) or path.is_symlink():
+                continue
+            yield path, rel
+
+
+def _read_text(path: Path) -> str | None:
+    try:
+        if path.stat().st_size > MAX_FILE_BYTES:
+            return None
+        data = path.read_bytes()
+    except OSError:
+        return None
+    if b"\x00" in data[:8192]:
+        return None  # binary
+    return data.decode("utf-8", errors="replace")
+
+
+def scan(root: Path) -> list[Finding]:
+    findings: list[Finding] = []
+    for path, rel in iter_files(root):
+        text = _read_text(path)
+        if text is None:
+            continue
+        env_file = is_env_file(path.name)
+        check_assignments = (
+            env_file or path.suffix.lower() in CONFIG_SUFFIXES or (path.name in CONFIG_NAMES)
+        )
+        for number, line in enumerate(text.splitlines(), start=1):
+            if ALLOW_PRAGMA in line:
+                continue
+            kind = _classify(line, check_assignments)
+            if kind:
+                findings.append(Finding(rel, number, kind, env_file))
+    return findings
+
+
+def _classify(line: str, check_assignments: bool) -> str | None:
+    for kind, pattern in STRONG_PATTERNS.items():
+        match = pattern.search(line)
+        if match and not (match.groups() and _looks_like_placeholder(match.group(1))):
+            return kind
+    if check_assignments:
+        for match in ASSIGNMENT.finditer(line):
+            if not _looks_like_placeholder(match.group("value")):
+                return f"hard-coded value for '{match.group('key')}'"
+    return None

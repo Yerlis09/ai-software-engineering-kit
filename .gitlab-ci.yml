@@ -1,0 +1,43 @@
+# CI for the kit itself (GitLab CI syntax; adapt if git.netsf.fr runs another CI platform).
+stages: [check, test, package]
+
+.python:
+  before_script:
+    - pip install -e ".[dev]"
+
+lint:
+  extends: .python
+  image: python:3.12-slim
+  stage: check
+  script:
+    - ruff check cli tests
+    - ruff format --check cli tests
+
+secrets:
+  image: { name: "zricethezav/gitleaks:v8.18.4", entrypoint: [""] }
+  stage: check
+  script: [gitleaks detect --source . --no-banner --redact]
+
+tests:
+  extends: .python
+  stage: test
+  image: python:${PYTHON_VERSION}-slim
+  parallel:
+    matrix:
+      - PYTHON_VERSION: ["3.9", "3.12"]
+  script:
+    - pytest --junitxml=report.xml
+  artifacts:
+    reports: { junit: report.xml }
+
+wheel-smoke-test:
+  image: python:3.12-slim
+  stage: package
+  script:
+    - pip wheel . --no-deps -w dist
+    - python -m venv /tmp/venv && /tmp/venv/bin/pip install dist/*.whl
+    - cd /tmp && /tmp/venv/bin/ai-project version
+    - /tmp/venv/bin/ai-project init /tmp/smoke -y --name smoke --profile backend-api
+    - /tmp/venv/bin/ai-project doctor --path /tmp/smoke
+  artifacts:
+    paths: [dist/]

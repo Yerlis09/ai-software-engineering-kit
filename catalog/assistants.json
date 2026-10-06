@@ -1,0 +1,6 @@
+{
+  "claude-code": { "title": "Claude Code (CLAUDE.md)" },
+  "copilot":     { "title": "GitHub Copilot (.github/copilot-instructions.md)" },
+  "cursor":      { "title": "Cursor (.cursor/rules/ai-kit.mdc)" },
+  "codex":       { "title": "Codex and other AGENTS.md-native tools (nothing extra needed)" }
+}

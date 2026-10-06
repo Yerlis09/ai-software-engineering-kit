@@ -1,0 +1,8 @@
+{
+  "postgresql": { "title": "PostgreSQL", "stacks": ["postgresql"] },
+  "sqlserver":  { "title": "SQL Server", "stacks": ["sqlserver"] },
+  "clickhouse": { "title": "ClickHouse", "stacks": ["clickhouse"] },
+  "mongodb":    { "title": "MongoDB",    "stacks": ["mongodb"] },
+  "none":       { "title": "None",       "stacks": [] },
+  "custom":     { "title": "Custom (describe it in .ai/context/project.md)", "stacks": [] }
+}

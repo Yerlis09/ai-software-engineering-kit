@@ -1,0 +1,14 @@
+{
+  "python-fastapi":  { "title": "Python + FastAPI",            "stacks": ["python", "fastapi", "nginx"] },
+  "python-django":   { "title": "Python + Django",             "stacks": ["python", "django", "nginx"] },
+  "python-flask":    { "title": "Python + Flask",              "stacks": ["python", "flask", "nginx"] },
+  "react-fastapi":   { "title": "React + Python (FastAPI)",    "stacks": ["react", "typescript", "python", "fastapi", "nginx"] },
+  "react-django":    { "title": "React + Python (Django)",     "stacks": ["react", "typescript", "python", "django", "nginx"] },
+  "angular-django":  { "title": "Angular + Django",            "stacks": ["angular", "typescript", "python", "django", "nginx"] },
+  "react":           { "title": "React + TypeScript",          "stacks": ["react", "typescript", "nginx"] },
+  "angular":         { "title": "Angular + TypeScript",        "stacks": ["angular", "typescript", "nginx"] },
+  "node-typescript": { "title": "Node.js + TypeScript",        "stacks": ["node", "typescript"] },
+  "python":          { "title": "Python (scripts, automation)", "stacks": ["python"] },
+  "python-data":     { "title": "Python + data pipelines",     "stacks": ["python", "data-pipelines"] },
+  "custom":          { "title": "Custom (pick stack guides)",  "stacks": [] }
+}

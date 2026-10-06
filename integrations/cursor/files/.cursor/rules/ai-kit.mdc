@@ -1,0 +1,10 @@
+---
+description: AI Software Engineering Kit entry point for {{ project_name }}
+alwaysApply: true
+---
+
+Kit-managed pointer (AI Software Engineering Kit v{{ kit_version }}).
+
+Follow `AGENTS.md` at the project root. It defines the mandatory workflow and points to the
+agents (`.ai/agents/`), rules (`.ai/rules/`), workflows (`.ai/workflows/`), stack guides
+(`.ai/stacks/`), the project context (`.ai/context/project.md`) and overrides (`.ai/custom/`).

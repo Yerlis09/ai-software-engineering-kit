@@ -1,0 +1,5 @@
+{
+  "kubernetes": { "title": "Docker + Kubernetes (RKE Staging and Prod) - team standard", "stacks": ["docker", "kubernetes", "ci-cd", "linux"] },
+  "docker":     { "title": "Docker only (single host / compose)",                       "stacks": ["docker", "ci-cd", "linux"] },
+  "none":       { "title": "Not deployed (library, local tool)",                         "stacks": ["ci-cd"] }
+}

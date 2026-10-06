@@ -1,0 +1,64 @@
+# Illustrative pipeline (GitLab CI syntax; adapt to the platform hosting git.netsf.fr).
+# Full reference: .ai/stacks/ci-cd/README.md
+stages: [check, test, build, staging, prod]
+
+variables:
+  IMAGE: "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+
+.python:
+  image: python:3.12-slim
+  before_script:
+    - pip install -r requirements.txt -e ".[dev]"
+
+lint:
+  extends: .python
+  stage: check
+  script:
+    - ruff check .
+    - ruff format --check .
+    - mypy
+
+doctor:
+  image: python:3.12-slim
+  stage: check
+  script:
+    - pip install "git+https://git.netsf.fr/<group>/ai-software-engineering-kit.git@v1.0.0"
+    - ai-project doctor
+
+secrets:
+  image: { name: "zricethezav/gitleaks:v8.18.4", entrypoint: [""] }
+  stage: check
+  script: [gitleaks detect --source . --no-banner --redact]
+
+tests:
+  extends: .python
+  stage: test
+  script:
+    - pytest --junitxml=report.xml
+  artifacts:
+    reports: { junit: report.xml }
+
+build:
+  stage: build
+  image: docker:27
+  services: ["docker:27-dind"]
+  script:
+    - docker build -t "$IMAGE" .
+    - docker push "$IMAGE"
+
+deploy_staging:
+  stage: staging
+  environment: staging
+  script:
+    - kubectl -n fastapi-demo-staging set image deployment/fastapi-demo api="$IMAGE"
+    - kubectl -n fastapi-demo-staging rollout status deployment/fastapi-demo --timeout=120s
+
+deploy_prod:
+  stage: prod
+  environment: production
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+  script:  # promote the SAME image tested in staging, never rebuild
+    - kubectl -n fastapi-demo-prod set image deployment/fastapi-demo api="$IMAGE"
+    - kubectl -n fastapi-demo-prod rollout status deployment/fastapi-demo --timeout=120s

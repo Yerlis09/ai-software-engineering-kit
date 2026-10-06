@@ -1,0 +1,13 @@
+{
+  "name": "data-engineering",
+  "title": "Data Engineering",
+  "description": "Ingestion, transformation and loading pipelines, analytics storage.",
+  "agents": ["00-master", "03-database", "04-architecture", "05-quality", "06-solid-patterns", "08-performance", "09-security", "10-testing", "11-documentation", "12-devops", "13-observability", "14-code-review"],
+  "agents_if_database": ["03-database"],
+  "rules": ["coding", "architecture", "security", "testing", "performance", "documentation"],
+  "workflows": ["new-project", "new-feature", "bug-fix", "refactoring", "security-audit", "release"],
+  "technologies": ["python-data", "python", "custom"],
+  "stacks": [],
+  "template": "data-engineering",
+  "structure": ["src/{{package_name}}/extract", "src/{{package_name}}/transform", "src/{{package_name}}/load", "src/{{package_name}}/quality", "src/{{package_name}}/orchestration", "tests/unit", "tests/integration", "deploy"]
+}

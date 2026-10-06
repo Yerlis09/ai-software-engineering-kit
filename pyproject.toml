@@ -1,0 +1,65 @@
+[build-system]
+requires = ["hatchling>=1.18"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ai-software-engineering-kit"
+dynamic = ["version"]
+description = "Internal AI Software Engineering Kit: agents, rules, workflows and the ai-project CLI."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.9"
+# The CLI deliberately has ZERO runtime dependencies (standard library only).
+dependencies = []
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Environment :: Console",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "pytest-cov>=4", "ruff>=0.5"]
+
+[project.scripts]
+ai-project = "ai_project.cli:main"
+
+[tool.hatch.version]
+path = "cli/ai_project/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["cli/ai_project"]
+
+# The knowledge base lives at the repository root (easy to browse and review)
+# and is bundled inside the package at build time.
+[tool.hatch.build.targets.wheel.force-include]
+"agents" = "ai_project/_kit/agents"
+"rules" = "ai_project/_kit/rules"
+"workflows" = "ai_project/_kit/workflows"
+"stacks" = "ai_project/_kit/stacks"
+"profiles" = "ai_project/_kit/profiles"
+"catalog" = "ai_project/_kit/catalog"
+"templates" = "ai_project/_kit/templates"
+"integrations" = "ai_project/_kit/integrations"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "cli/", "agents/", "rules/", "workflows/", "stacks/", "profiles/", "catalog/",
+    "templates/", "integrations/", "tests/", "docs/", "README.md", "LICENSE", "CHANGELOG.md",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+src = ["cli"]
+extend-exclude = ["examples"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "SIM", "RUF"]
+ignore = ["UP006", "UP007", "UP035"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106"]
