@@ -81,7 +81,7 @@ doctor:
   image: python:3.12-slim
   stage: check
   script:                              # pin the kit version used by the project
-    - pip install "git+https://git.netsf.fr/<group>/ai-software-engineering-kit.git@v1.0.0"
+    - pip install "git+https://git.netsf.fr/<group>/ai-software-engineering-kit.git@v1.2.0"
     - ai-project doctor                # non-zero exit fails the pipeline
 unit:
   <<: *python

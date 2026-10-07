@@ -1,6 +1,6 @@
 # Copilot instructions — fastapi-demo
 
-Kit-managed pointer (AI Software Engineering Kit v1.0.0).
+Kit-managed pointer (AI Software Engineering Kit v1.2.0).
 
 Follow `AGENTS.md` at the repository root: it defines the project, the mandatory workflow,
 the agents (`.ai/agents/`), rules (`.ai/rules/`) and workflows (`.ai/workflows/`).

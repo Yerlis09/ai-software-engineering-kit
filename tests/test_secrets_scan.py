@@ -10,6 +10,7 @@ from ai_project.secrets_scan import ALLOW_PRAGMA, is_env_file, scan
 
 FAKE_AWS = "AKIA" + "ABCDEFGHIJKLMNOP"
 FAKE_PASSWORD = "S3cr" + "etValue!42"
+FAKE_PAREN_PASSWORD = "P@ss(" + "w0rd)!2024"  # parentheses must not hide a real secret
 PEM_HEADER = "-----BEGIN " + "RSA PRIVATE KEY-----"
 
 
@@ -25,6 +26,7 @@ def write(root: Path, rel: str, content: str) -> None:
         ("app/settings.py", f'DB_PASSWORD = "{FAKE_PASSWORD}"\n', "hard-coded"),
         ("config.yaml", f"api_key: {FAKE_PASSWORD}\n", "hard-coded"),
         ("app/conf.py", f'password: str = "{FAKE_PASSWORD}"\n', "hard-coded"),
+        ("app/conf2.py", f'DB_PASSWORD = "{FAKE_PAREN_PASSWORD}"\n', "hard-coded"),
         ("notes.md", f"key {FAKE_AWS}\n", "AWS access key"),
         ("deploy/key.txt", PEM_HEADER + "\n", "private key"),
         (
@@ -48,6 +50,8 @@ def test_detects_secrets(tmp_path: Path, rel: str, content: str, kind: str) -> N
         'password = os.environ["DB_PASSWORD"]\n',
         "password: str\n",
         "env_secrets: list[Finding]\n",
+        'data = {"estimated_tokens": self.totals["total"]}\n',
+        'score({"token_cost": 1.0}).value\n',
         "api_token: Optional[str] = None\n",
         'API_KEY = "<injected-at-runtime>"\n',
         "token = settings.auth.token\n",
@@ -67,6 +71,19 @@ def test_env_files_are_flagged_separately(tmp_path: Path) -> None:
     write(tmp_path, ".env.example", "DB_PASSWORD=<injected-at-runtime>\n")
     findings = scan(tmp_path)
     assert [(f.path, f.in_env_file) for f in findings] == [(".env", True)]
+
+
+def test_kit_generated_files_are_skipped_even_in_nested_projects(tmp_path: Path) -> None:
+    line = f'  ".ai/agents/15-context-token-optimizer.md": "{"a" * 64}",\n'
+    write(tmp_path, ".ai/kit.lock.json", line)
+    write(tmp_path, "services/billing/.ai/kit.lock.json", line)
+    write(tmp_path, "services/billing/.ai/agents/09-security.md", PEM_HEADER + "\n")
+    assert scan(tmp_path) == []
+
+
+def test_attribute_access_in_dict_literal_is_not_a_secret(tmp_path: Path) -> None:
+    write(tmp_path, "app/x.py", 'data = {"tokens": self.tokens}\n')
+    assert scan(tmp_path) == []
 
 
 def test_skips_vendor_dirs_kit_knowledge_and_binaries(tmp_path: Path) -> None:

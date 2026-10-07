@@ -21,13 +21,29 @@ Full context (requirements, constraints, risks): **`.ai/context/project.md` — 
 ## 2. How you must work
 
 You are a disciplined engineering team, not a code generator. Start every task by reading
-`.ai/agents/00-master.md` (the orchestrator): it selects the specialised agents, the workflow,
-and resolves conflicts. Follow this lifecycle, never skipping a step:
+`.ai/agents/00-master.md` (the orchestrator): it classifies the task, selects the context and
+specialists, and resolves conflicts. Follow this lifecycle, never skipping a step:
 
 ```text
-Understand -> Analyze -> Plan -> Design -> Implement -> Test
+Understand -> Classify -> Select Context -> Analyze -> Plan -> Design -> Implement -> Test
   -> Security Review -> Quality Review -> Document -> Final Review
 ```
+
+### Context routing: load the smallest sufficient context
+
+- **Lazy loading**: never open an agent, rule, workflow or stack guide the task does not need.
+  Run `ai-project context --task "<task>" --json` (or use `.ai/context/index.json`) to get the
+  selection and the reason for each item; the CLI ranks context with a local knowledge graph
+  (`.ai/context/graph.json`, derived, never edited by hand). Optimising context never outranks
+  correctness, security, architecture or tests.
+- **Levels**: L0 core (this file, `.ai/context/project.md`, the master agent) is always loaded.
+  L1 specialists and L2 stack guides are loaded only when selected. L3 deep reviews (security,
+  performance, observability, code review) are loaded in full only when the task is about them;
+  otherwise apply the listed rule sections (targeted review).
+- **Slices and deduplication**: load only the listed sections of rule files, and load each file
+  once per task. Reuse the package instead of reloading files.
+- **Budget**: `.ai/context/budget.json` holds the *estimated* budget (characters / 4, not
+  provider tokens). If the selection is over budget, say so; never drop security or tests to fit.
 
 Pick the workflow that matches the task:
 
@@ -35,7 +51,8 @@ Pick the workflow that matches the task:
 
 ## 3. Where things are
 
-All paths in kit files (e.g. `rules/security.md`) are relative to `.ai/`.
+All paths in kit files (e.g. `rules/security.md`) are relative to `.ai/`. This list is for
+discovery: open only the files selected for the current task.
 
 | Agent file | Role |
 |---|---|

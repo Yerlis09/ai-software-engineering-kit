@@ -14,3 +14,4 @@ htmlcov/
 !.env.example
 *.kit-new
 *.kit-backup
+.mypy_cache/

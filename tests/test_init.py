@@ -5,6 +5,7 @@ from pathlib import Path
 
 from conftest import run
 
+from ai_project import __version__
 from ai_project.lockfile import content_hash
 
 
@@ -20,7 +21,7 @@ def test_non_interactive_backend_project(init_project) -> None:
     )
     lock = json.loads((root / ".ai/kit.lock.json").read_text("utf-8"))
     assert lock["selection"]["profile"] == "backend-api"
-    assert lock["kit_version"] == "1.0.0"
+    assert lock["kit_version"] == __version__
     assert (root / "AGENTS.md").read_text("utf-8").startswith("# AGENTS.md — billing-api")
     assert "Bill customers." in (root / ".ai/context/project.md").read_text("utf-8")
     assert (root / ".ai/agents/02-backend.md").is_file()
@@ -174,4 +175,4 @@ def test_custom_technology_with_extra_stacks(init_project) -> None:
     )
     assert (root / ".ai/stacks/react/README.md").is_file()
     assert (root / ".ai/stacks/nginx/README.md").is_file()
-    assert len(list((root / ".ai/agents").glob("*.md"))) == 15
+    assert len(list((root / ".ai/agents").glob("*.md"))) == 16  # 15 specialists + router (v1.1)

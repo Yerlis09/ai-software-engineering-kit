@@ -1,0 +1,317 @@
+{
+  "_comment": "Context routing metadata (data only, never executed). Triggers: lowercase words, multi-word phrases, or prefixes ending with '*'; value = weight. Levels: NONE < LOW < MEDIUM < HIGH. requires: {agent: max level propagated}; recommended: propagated as LOW (reported, not loaded); optional: informational only. Layers: L0 core (always), L1 specialist (loaded at MEDIUM+), L3 deep review (loaded only at HIGH, targeted rule sections at MEDIUM), router (never auto-loaded).",
+  "agents": {
+    "00-master": {
+      "layer": "L0", "priority": "core", "summary": "Orchestration, workflow and agent selection",
+      "topics": ["orchestration", "lifecycle", "routing", "conflicts"],
+      "triggers": {}, "requires": {}, "recommended": [], "optional": [], "domains": []
+    },
+    "01-frontend": {
+      "layer": "L1", "priority": "high", "summary": "UI, components, accessibility, client state",
+      "topics": ["ui", "components", "accessibility", "state", "forms", "ux"],
+      "triggers": {"frontend": 2, "react": 2, "angular": 2, "ui": 2, "component*": 1, "page": 1, "dashboard": 1,
+                   "form": 1, "forms": 1, "css": 1, "html": 1, "accessibility": 1, "a11y": 1, "responsive": 1,
+                   "button": 1, "modal": 1, "spa": 1, "layout": 1, "browser": 1, "jsx": 1, "tsx": 1, "screen": 1},
+      "requires": {"04-architecture": "MEDIUM", "10-testing": "MEDIUM"},
+      "recommended": ["09-security", "11-documentation"], "optional": ["08-performance"], "domains": ["frontend"]
+    },
+    "02-backend": {
+      "layer": "L1", "priority": "high", "summary": "API design, services, repositories, validation",
+      "topics": ["api", "services", "controllers", "repositories", "validation", "errors", "integrations", "jobs"],
+      "triggers": {"backend": 2, "api": 2, "endpoint*": 2, "fastapi": 2, "django": 2, "flask": 2, "express": 2,
+                   "route": 1, "routes": 1, "controller*": 1, "service*": 1, "repositor*": 1, "handler*": 1,
+                   "rest": 1, "graphql": 1, "get": 1, "post": 1, "put": 1, "patch": 1, "delete": 1,
+                   "request*": 1, "response*": 1, "webhook*": 1, "middleware": 1, "business logic": 1,
+                   "background job": 1, "job": 1, "jobs": 1, "integration*": 1, "server": 1},
+      "requires": {"04-architecture": "MEDIUM", "10-testing": "HIGH"},
+      "recommended": ["09-security", "11-documentation"], "optional": ["08-performance", "13-observability"],
+      "domains": ["backend"]
+    },
+    "03-database": {
+      "layer": "L1", "priority": "high", "summary": "Schema, queries, indexes, migrations, transactions",
+      "topics": ["schema", "queries", "indexes", "migrations", "transactions", "pagination"],
+      "triggers": {"database": 2, "sql": 2, "sql injection": 1, "query": 1, "queries": 1, "schema": 1,
+                   "migration*": 2, "index": 1, "indexes": 1, "table*": 1, "postgres*": 2, "clickhouse": 2,
+                   "mongo*": 2, "sql server": 2, "mssql": 2, "orm": 1, "transaction*": 1, "search": 1,
+                   "pagination": 1, "column*": 1, "join*": 1, "sqlalchemy": 2},
+      "requires": {"02-backend": "MEDIUM", "10-testing": "MEDIUM"},
+      "recommended": ["08-performance"], "optional": [], "domains": ["database"]
+    },
+    "04-architecture": {
+      "layer": "L1", "priority": "medium", "summary": "Boundaries, layering, ADRs, proportional architecture",
+      "topics": ["architecture", "boundaries", "layers", "adr", "modules"],
+      "triggers": {"architecture": 2, "architectural": 2, "adr": 2, "microservice*": 2, "monolith": 2,
+                   "hexagonal": 2, "clean architecture": 2, "ddd": 2, "bounded context": 2, "module*": 1,
+                   "boundar*": 1, "layer*": 1, "design": 1, "structure": 1, "decoupl*": 1},
+      "requires": {}, "recommended": ["11-documentation"], "optional": ["06-solid-patterns"], "domains": []
+    },
+    "05-quality": {
+      "layer": "L1", "priority": "medium", "summary": "Readability, naming, duplication, complexity",
+      "topics": ["readability", "naming", "duplication", "complexity", "dead code"],
+      "triggers": {"refactor*": 2, "clean up": 1, "cleanup": 1, "duplicat*": 1, "dead code": 2, "readab*": 1,
+                   "naming": 1, "rename": 1, "complexity": 1, "smell*": 1, "simplif*": 1, "maintainab*": 1,
+                   "code quality": 2, "lint*": 1},
+      "requires": {"10-testing": "MEDIUM"}, "recommended": ["06-solid-patterns"], "optional": [], "domains": []
+    },
+    "06-solid-patterns": {
+      "layer": "L1", "priority": "low", "summary": "SOLID principles and design patterns",
+      "topics": ["solid", "patterns", "dependency injection"],
+      "triggers": {"solid": 2, "design pattern*": 2, "pattern*": 1, "factory": 1, "strategy": 1, "adapter": 1,
+                   "dependency injection": 2, "decorator": 1, "observer": 1, "facade": 1, "builder": 1,
+                   "abstraction*": 1, "interface*": 1},
+      "requires": {}, "recommended": ["05-quality"], "optional": ["07-oop"], "domains": []
+    },
+    "07-oop": {
+      "layer": "L1", "priority": "low", "summary": "Encapsulation, composition, class design",
+      "topics": ["classes", "encapsulation", "composition", "inheritance"],
+      "triggers": {"oop": 2, "inheritance": 2, "polymorph*": 2, "encapsulat*": 2, "class": 1, "classes": 1,
+                   "composition": 1, "subclass*": 1, "object oriented": 2},
+      "requires": {}, "recommended": ["06-solid-patterns"], "optional": [], "domains": []
+    },
+    "08-performance": {
+      "layer": "L3", "priority": "medium", "summary": "Measure-first optimisation, budgets, bottlenecks",
+      "topics": ["latency", "throughput", "memory", "cpu", "caching", "profiling"],
+      "triggers": {"performance": 2, "slow": 2, "slowness": 2, "latency": 2, "throughput": 2, "bottleneck*": 2,
+                   "benchmark*": 2, "load test*": 2, "optimi*": 1, "speed": 1, "faster": 1, "cach*": 1,
+                   "memory": 1, "cpu": 1, "profil*": 1, "scal*": 1, "timeout*": 1},
+      "requires": {"10-testing": "MEDIUM"}, "recommended": ["13-observability"], "optional": ["03-database"],
+      "domains": []
+    },
+    "09-security": {
+      "layer": "L3", "priority": "high", "summary": "Secure by design, OWASP, secrets and .env policy",
+      "topics": ["authentication", "authorization", "input validation", "injection", "secrets", "dependencies"],
+      "triggers": {"security": 2, "secure": 1, "vulnerab*": 2, "injection": 2, "xss": 2, "csrf": 2, "ssrf": 2,
+                   "path traversal": 2, "cve": 2, "secret*": 2, "credential*": 2, "password*": 1, "auth": 1,
+                   "authenticat*": 1, "authoriz*": 1, "login": 1, "permission*": 1, "role*": 1, "oauth": 1,
+                   "jwt": 1, "token*": 1, "encrypt*": 1, "sanitiz*": 1, "upload*": 1, "input": 1, "creat*": 1,
+                   "sign up": 1, "signup": 1, "env": 1, "leak*": 2, "exploit*": 2, "harden*": 2},
+      "requires": {"10-testing": "HIGH"}, "recommended": [], "optional": ["12-devops"], "domains": []
+    },
+    "10-testing": {
+      "layer": "L1", "priority": "high", "summary": "Test strategy and meaningful, deterministic tests",
+      "topics": ["unit", "integration", "e2e", "fixtures", "coverage"],
+      "triggers": {"test": 2, "tests": 2, "testing": 2, "coverage": 2, "pytest": 2, "unit test*": 2, "e2e": 2,
+                   "tdd": 2, "flaky": 2, "vitest": 1, "jest": 1, "playwright": 1, "mock*": 1, "fixture*": 1,
+                   "regression": 1},
+      "requires": {}, "recommended": [], "optional": [], "domains": ["language"]
+    },
+    "11-documentation": {
+      "layer": "L1", "priority": "medium", "summary": "README, architecture docs, ADRs, diagrams",
+      "topics": ["readme", "adr", "diagrams", "api docs", "guides"],
+      "triggers": {"documentation": 2, "docs": 2, "readme": 2, "diagram*": 2, "mermaid": 2, "changelog": 1,
+                   "guide": 1, "docstring*": 1, "openapi": 1, "swagger": 1, "runbook*": 1},
+      "requires": {}, "recommended": [], "optional": [], "domains": []
+    },
+    "12-devops": {
+      "layer": "L1", "priority": "medium", "summary": "CI/CD, Docker, Kubernetes, releases, rollback",
+      "topics": ["ci/cd", "docker", "kubernetes", "deployment", "rollback"],
+      "triggers": {"devops": 2, "docker*": 2, "kubernetes": 2, "k8s": 2, "helm": 2, "rke": 2, "pipeline*": 2,
+                   "ci": 2, "deploy*": 2, "nginx": 2, "uwsgi": 2, "rollback": 2, "container*": 1, "image": 1,
+                   "gitlab": 1, "release*": 1, "infra*": 1, "staging": 1, "production": 1, "kubectl": 2},
+      "requires": {}, "recommended": ["09-security", "13-observability"], "optional": [], "domains": ["infra"]
+    },
+    "13-observability": {
+      "layer": "L3", "priority": "medium", "summary": "Logs, metrics, traces, probes, alerts",
+      "topics": ["logging", "metrics", "tracing", "probes", "alerts"],
+      "triggers": {"observability": 2, "logging": 2, "metric*": 2, "tracing": 2, "opentelemetry": 2,
+                   "monitor*": 2, "alert*": 2, "prometheus": 2, "grafana": 2, "liveness": 2, "readiness": 2,
+                   "slo": 2, "log": 1, "logs": 1, "trace*": 1, "probe*": 1},
+      "requires": {}, "recommended": ["09-security"], "optional": [], "domains": []
+    },
+    "14-code-review": {
+      "layer": "L3", "priority": "medium", "summary": "Evidence-based final review and verdict",
+      "topics": ["review", "verdict", "evidence"],
+      "triggers": {"review": 2, "code review": 2, "pull request": 2, "merge request": 2, "pr": 1},
+      "requires": {}, "recommended": [], "optional": [], "domains": []
+    },
+    "15-context-token-optimizer": {
+      "layer": "router", "priority": "low", "summary": "Context selection, budgets and token estimates",
+      "topics": ["context", "tokens", "budget", "routing"],
+      "triggers": {"context optimi*": 2, "context routing": 2, "context router": 2, "context selection": 2,
+                   "context analysis": 2, "context budget": 2, "context package": 2, "token budget": 2,
+                   "token optimi*": 2, "reduce tokens": 2, "knowledge graph": 2, "graph tuning": 2,
+                   "tune the router": 2, "routing metadata": 2},
+      "requires": {}, "recommended": [], "optional": [], "domains": []
+    }
+  },
+  "rules": {
+    "coding": {
+      "agents": ["01-frontend", "02-backend", "03-database", "05-quality", "06-solid-patterns", "07-oop"],
+      "sections": {
+        "Guiding principles": {"always": true},
+        "Error handling": {"always": true},
+        "Naming and readability": {"triggers": ["naming", "rename", "readab*"]},
+        "Functions and modules": {"triggers": ["function*", "module*", "refactor*"]},
+        "Types and contracts": {"triggers": ["type*", "contract*", "interface*"]},
+        "Observability by design": {"triggers": ["log*", "metric*"]},
+        "Comments and dead code": {"triggers": ["comment*", "dead code"]},
+        "Formatting and tooling": {"triggers": ["format*", "lint*"]},
+        "Dependencies": {"triggers": ["dependenc*", "package*", "library"]},
+        "Version control": {"triggers": ["commit*", "branch*", "git"]},
+        "Testability by design": {"triggers": ["testab*", "refactor*"]}
+      }
+    },
+    "architecture": {
+      "agents": ["04-architecture", "12-devops"],
+      "sections": {
+        "Proportionality": {"always": true},
+        "Dependency direction": {"always": true},
+        "Structure and boundaries": {"triggers": ["module*", "boundar*", "structure", "layer*"]},
+        "Integration and APIs": {"triggers": ["api", "endpoint*", "integration*", "http", "rest", "contract*"]},
+        "Distribution": {"triggers": ["microservice*", "distribut*", "event*", "queue*"]},
+        "Configuration and runtime (12-factor)": {"triggers": ["config*", "env", "setting*"]},
+        "Deployment target": {"triggers": ["deploy*", "docker*", "kubernetes", "k8s", "rke"]},
+        "Observability by design": {"triggers": ["log*", "metric*", "health", "probe*"]},
+        "Decisions and documentation": {"triggers": ["adr", "decision*", "design"]}
+      }
+    },
+    "security": {
+      "agents": ["09-security"],
+      "sections": {
+        "Secure by design": {"always": true},
+        "Secrets management": {"triggers": ["secret*", "credential*", "password*", "env", "vault", "key", "token*", "leak*"]},
+        "Input validation and output encoding": {"triggers": ["input", "validat*", "injection", "xss", "sql", "sanitiz*", "encod*", "form", "endpoint*", "api", "creat*", "search"]},
+        "Authentication and authorization": {"triggers": ["auth", "authenticat*", "authoriz*", "login", "permission*", "role*", "jwt", "oauth", "session*", "token*"]},
+        "Files, paths and network": {"triggers": ["file*", "upload*", "path*", "url", "ssrf", "download*"]},
+        "Dependencies and supply chain": {"triggers": ["dependenc*", "package*", "library", "upgrade", "cve", "npm", "pip"]},
+        "Data protection and logging": {"triggers": ["log*", "pii", "gdpr", "personal", "encrypt*"]},
+        "Configuration": {"triggers": ["config*", "cors", "header*", "tls", "debug"]},
+        "Secret found? Do this": {"triggers": ["leak*", "exposed", "secret*", "credential*"]}
+      }
+    },
+    "testing": {
+      "agents": ["10-testing"],
+      "sections": {
+        "Integrity": {"always": true},
+        "What to test": {"always": true},
+        "Testable by design": {"triggers": ["testab*", "refactor*"]},
+        "Test pyramid": {"triggers": ["unit", "integration", "e2e", "api", "endpoint*"]},
+        "Determinism and isolation": {"triggers": ["mock*", "flaky", "time", "random", "isolat*"]},
+        "Structure and readability": {"triggers": ["fixture*", "naming"]},
+        "Continuous integration": {"triggers": ["ci", "pipeline*"]},
+        "Non-functional tests": {"triggers": ["performance", "load test*", "benchmark*", "security"]}
+      }
+    },
+    "performance": {
+      "agents": ["08-performance"],
+      "sections": {
+        "Approach": {"always": true},
+        "Budgets": {"triggers": ["budget*", "latency", "slo"]},
+        "Data access": {"triggers": ["query", "queries", "sql", "database", "pagination", "index*", "search"]},
+        "Timeouts and resilience": {"triggers": ["timeout*", "retr*", "resilien*", "external"]},
+        "Caching": {"triggers": ["cach*"]},
+        "Concurrency and work offloading": {"triggers": ["async", "concurren*", "thread*", "queue*", "background"]},
+        "Resources and runtime": {"triggers": ["memory", "cpu", "container*"]},
+        "Observability": {"triggers": ["metric*", "profil*"]},
+        "Testing": {"triggers": ["benchmark*", "load test*"]}
+      }
+    },
+    "documentation": {
+      "agents": ["11-documentation"],
+      "sections": {
+        "General": {"always": true},
+        "README": {"triggers": ["readme"]},
+        "Architecture Decision Records": {"triggers": ["adr", "decision*"]},
+        "Diagrams": {"triggers": ["diagram*", "mermaid"]},
+        "Code-level documentation": {"triggers": ["comment*", "docstring*"]},
+        "Change history": {"triggers": ["changelog", "release*"]},
+        "Operations": {"triggers": ["runbook*", "deploy*", "operat*"]},
+        "AI context": {"triggers": ["agents", "context", "ai"]}
+      }
+    }
+  },
+  "workflows": {
+    "new-feature": {"default": true, "triggers": {"add": 1, "implement*": 1, "new": 1, "feature": 2, "creat*": 1, "support": 1, "expose": 1, "build": 1, "endpoint*": 1}},
+    "bug-fix": {"triggers": {"fix*": 2, "bug*": 2, "error*": 1, "broken": 2, "regression": 2, "crash*": 2, "fail*": 1, "incident": 2, "issue": 1}},
+    "refactoring": {"triggers": {"refactor*": 3, "clean up": 2, "cleanup": 2, "restructur*": 2, "improve": 1, "optimi*": 1, "simplif*": 1, "rename": 1}},
+    "security-audit": {"triggers": {"audit": 3, "pentest": 3, "threat model*": 3, "security review": 3, "harden*": 2}},
+    "release": {"triggers": {"release": 3, "deploy*": 2, "version": 1, "tag": 1, "changelog": 2, "rollback": 2, "promote": 2}},
+    "new-project": {"triggers": {"new project": 3, "bootstrap": 3, "scaffold*": 3, "initial setup": 3, "set up the project": 3}}
+  },
+  "stacks": {
+    "python":         {"domains": ["backend", "data", "language"], "triggers": {"python": 2, "pytest": 1, "pip": 1, "pydantic": 1}},
+    "fastapi":        {"domains": ["backend"], "specializes": ["python"], "conflicts": ["django", "flask"], "triggers": {"fastapi": 2, "uvicorn": 2}},
+    "django":         {"domains": ["backend"], "specializes": ["python"], "conflicts": ["fastapi", "flask"], "triggers": {"django": 2}},
+    "flask":          {"domains": ["backend"], "specializes": ["python"], "conflicts": ["fastapi", "django"], "triggers": {"flask": 2}},
+    "node":           {"domains": ["backend", "language"], "companions": ["typescript"], "triggers": {"node": 2, "nodejs": 2, "express": 2, "npm": 1}},
+    "typescript":     {"domains": ["frontend", "language"], "triggers": {"typescript": 2, "ts": 1, "tsx": 1}},
+    "react":          {"domains": ["frontend"], "companions": ["typescript"], "conflicts": ["angular"], "triggers": {"react": 2, "jsx": 1, "hook*": 1}},
+    "angular":        {"domains": ["frontend"], "companions": ["typescript"], "conflicts": ["react"], "triggers": {"angular": 2, "rxjs": 2}},
+    "postgresql":     {"domains": ["database"], "triggers": {"postgres*": 2, "psql": 2}},
+    "sqlserver":      {"domains": ["database"], "triggers": {"sql server": 2, "mssql": 2, "t-sql": 2, "tsql": 2}},
+    "clickhouse":     {"domains": ["database"], "triggers": {"clickhouse": 2}},
+    "mongodb":        {"domains": ["database"], "triggers": {"mongo*": 2}},
+    "data-pipelines": {"domains": ["data"], "related": {"python": 0.8}, "triggers": {"etl": 2, "elt": 2, "ingest*": 2, "airflow": 2, "data pipeline*": 2, "batch": 1}},
+    "docker":         {"domains": ["infra"], "related": {"linux": 0.4}, "triggers": {"docker*": 2, "container*": 1, "image": 1}},
+    "kubernetes":     {"domains": ["infra"], "depends_on": ["docker"], "related": {"ci-cd": 0.5, "linux": 0.3, "nginx": 0.3}, "triggers": {"kubernetes": 2, "k8s": 2, "kubectl": 2, "helm": 2, "rke": 2}},
+    "nginx":          {"domains": ["infra"], "related": {"linux": 0.3}, "triggers": {"nginx": 2, "uwsgi": 2, "reverse proxy": 2}},
+    "linux":          {"domains": ["infra"], "triggers": {"linux": 2, "bash": 1, "shell": 1, "systemd": 2}},
+    "ci-cd":          {"domains": ["infra"], "related": {"docker": 0.5}, "triggers": {"ci": 2, "pipeline*": 2, "gitlab": 2, "github actions": 2}}
+  },
+  "_tasks_comment": "Task categories (v1.2). A category is detected when its trigger score is >= 2. requires: agents made REQUIRED by the category; recommends: graph weight used by ranking (never loads by itself); workflow: related workflow.",
+  "tasks": {
+    "new_project":   {"triggers": {"new project": 3, "bootstrap": 3, "scaffold*": 3, "initial setup": 3, "set up the project": 3},
+                      "requires": ["04-architecture"], "recommends": {"12-devops": 0.6, "11-documentation": 0.5}, "workflow": "new-project"},
+    "new_feature":   {"triggers": {"new feature": 3, "feature": 2, "implement*": 2, "add": 1, "creat*": 1, "build": 1, "expose": 1, "support": 1, "endpoint*": 1},
+                      "requires": ["10-testing"], "recommends": {"11-documentation": 0.4}, "workflow": "new-feature"},
+    "bug_fix":       {"triggers": {"fix*": 2, "bug*": 2, "broken": 2, "crash*": 2, "regression": 2, "incident": 2, "error*": 1, "fail*": 1},
+                      "requires": ["10-testing"], "recommends": {}, "workflow": "bug-fix"},
+    "refactoring":   {"triggers": {"refactor*": 3, "clean up": 2, "cleanup": 2, "restructur*": 2, "dead code": 2, "simplif*": 1, "rename": 1},
+                      "requires": ["05-quality", "10-testing"], "recommends": {"06-solid-patterns": 0.5, "07-oop": 0.3}, "workflow": "refactoring"},
+    "security":      {"triggers": {"security": 2, "vulnerab*": 2, "injection": 2, "xss": 2, "csrf": 2, "ssrf": 2, "authenticat*": 2, "authoriz*": 2,
+                                   "secret*": 2, "credential*": 2, "cve": 2, "harden*": 2, "auth": 1, "audit": 1, "permission*": 1, "login": 1, "jwt": 1, "oauth": 1},
+                      "requires": ["09-security", "10-testing"], "recommends": {"04-architecture": 0.6}, "workflow": "security-audit"},
+    "testing":       {"triggers": {"test": 2, "tests": 2, "testing": 2, "coverage": 2, "pytest": 2, "e2e": 2, "tdd": 2, "flaky": 2, "unit test*": 2},
+                      "requires": ["10-testing"], "recommends": {}, "workflow": "new-feature"},
+    "performance":   {"triggers": {"performance": 2, "slow": 2, "latency": 2, "throughput": 2, "bottleneck*": 2, "benchmark*": 2, "load test*": 2,
+                                   "optimi*": 1, "cach*": 1, "memory": 1, "cpu": 1},
+                      "requires": ["08-performance"], "recommends": {"13-observability": 0.5}, "workflow": "refactoring"},
+    "database":      {"triggers": {"database": 2, "sql": 2, "migration*": 2, "postgres*": 2, "clickhouse": 2, "mongo*": 2, "sql server": 2,
+                                   "query": 1, "queries": 1, "schema": 1, "index": 1, "table*": 1, "transaction*": 1},
+                      "requires": ["03-database"], "recommends": {"08-performance": 0.4}, "workflow": "new-feature"},
+    "api":           {"triggers": {"api": 2, "endpoint*": 2, "graphql": 2, "webhook*": 2, "rest": 1, "route": 1, "routes": 1, "openapi": 1, "http": 1},
+                      "requires": ["02-backend"], "recommends": {"09-security": 0.5}, "workflow": "new-feature"},
+    "frontend":      {"triggers": {"frontend": 2, "react": 2, "angular": 2, "ui": 2, "accessibility": 2, "component*": 1, "page": 1, "dashboard": 1,
+                                   "css": 1, "form": 1},
+                      "requires": ["01-frontend"], "recommends": {"09-security": 0.3}, "workflow": "new-feature"},
+    "backend":       {"triggers": {"backend": 2, "fastapi": 2, "django": 2, "flask": 2, "express": 2, "business logic": 2, "python": 1, "node": 1,
+                                   "service*": 1, "server": 1, "controller*": 1, "repositor*": 1, "job": 1, "jobs": 1},
+                      "requires": ["02-backend"], "recommends": {"09-security": 0.4}, "workflow": "new-feature"},
+    "deployment":    {"triggers": {"deploy*": 2, "kubernetes": 2, "k8s": 2, "helm": 2, "docker*": 2, "rke": 2, "rollout": 2, "rollback": 2,
+                                   "staging": 1, "production": 1, "container*": 1, "nginx": 1, "pipeline*": 1, "ci": 1},
+                      "requires": ["12-devops"], "recommends": {"09-security": 0.4, "13-observability": 0.4}, "workflow": "release"},
+    "documentation": {"triggers": {"documentation": 2, "docs": 2, "readme": 2, "diagram*": 2, "mermaid": 2, "adr": 2, "changelog": 1, "docstring*": 1},
+                      "requires": ["11-documentation"], "recommends": {}, "workflow": "new-feature"},
+    "release":       {"triggers": {"release": 2, "version bump": 2, "promote": 2, "semver": 2, "tag": 1, "changelog": 1, "version": 1},
+                      "requires": ["12-devops"], "recommends": {"11-documentation": 0.5}, "workflow": "release"}
+  },
+  "tools": {
+    "pytest":   {"name": "pytest", "stacks": ["python"], "validates": ["10-testing"]},
+    "ruff":     {"name": "Ruff", "stacks": ["python"], "validates": ["05-quality"]},
+    "mypy":     {"name": "mypy", "stacks": ["python"], "validates": ["05-quality"]},
+    "vitest":   {"name": "Vitest", "stacks": ["react", "typescript"], "validates": ["10-testing"]},
+    "docker":   {"name": "Docker CLI", "stacks": ["docker"], "validates": ["12-devops"]},
+    "kubectl":  {"name": "kubectl", "stacks": ["kubernetes"], "validates": ["12-devops"]},
+    "gitleaks": {"name": "gitleaks", "stacks": ["ci-cd"], "validates": ["09-security"]},
+    "trivy":    {"name": "Trivy", "stacks": ["docker"], "validates": ["09-security"]}
+  },
+  "_ranking_comment": "Context ranking (v1.2). score = sum(weight * component) - token_cost * weights.token_cost - redundancy, clamped to [0, 1]. Components are in [0, 1]. RECOMMENDED items are loaded only when score >= min_recommended_score and the budget allows. protected_agents are always REQUIRED once they reach MEDIUM (security and tests are never traded for tokens). category_rule_weight: a task category recommending a non-loaded agent with at least this weight adds that agent's rule sections (targeted review).",
+  "ranking": {
+    "weights": {"task_match": 0.35, "graph_weight": 0.30, "profile_match": 0.05, "technology_match": 0.20,
+                "dependency_bonus": 0.15, "token_cost": 0.05},
+    "redundancy_penalty": 0.2,
+    "min_recommended_score": 0.30,
+    "protected_agents": ["09-security", "10-testing"],
+    "max_depth": 3,
+    "category_rule_weight": 0.5
+  },
+  "domains": {
+    "frontend": ["01-frontend"],
+    "backend": ["02-backend"],
+    "database": ["03-database"],
+    "data": ["03-database"],
+    "infra": ["12-devops"],
+    "language": ["10-testing"]
+  },
+  "_domains_comment": "A stack is selected when an agent of one of its domains reaches MEDIUM (installed or not). 'language' is a fallback: used only when no frontend/backend/database/data domain is active."
+}

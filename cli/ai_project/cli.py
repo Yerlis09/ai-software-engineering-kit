@@ -11,6 +11,7 @@ from typing import Callable, Sequence
 from ai_project import __version__
 from ai_project.catalog import Catalog
 from ai_project.console import Console, Prompter
+from ai_project.context_cmd import ContextOptions, run_context
 from ai_project.doctor import print_report, run_doctor
 from ai_project.errors import EXIT_FAILURE, EXIT_OK, EXIT_USAGE, KitError
 from ai_project.init_cmd import InitOptions, run_init
@@ -32,6 +33,7 @@ examples:
   ai-project doctor                     check the current project (CI-friendly)
   ai-project update --dry-run           preview kit updates
   ai-project list profiles              show available profiles
+  ai-project context --task "add customer endpoint"   minimum context for a task
 
 exit codes: 0 success, 1 failure (doctor FAIL, update pending with --check), 2 usage error
 """
@@ -97,6 +99,25 @@ def build_parser() -> argparse.ArgumentParser:
         "--force",
         action="store_true",
         help="resolve conflicts with the kit version (backups are kept)",
+    )
+
+    ctx = sub.add_parser(
+        "context",
+        help="show the minimum context (agents, rules, stacks) a task needs",
+        description="Select the minimum context for a task and estimate its size "
+        "(characters / 4: an estimate, not the provider's token count).",
+    )
+    ctx.add_argument("--task", help='task description, e.g. "add GET /health endpoint"')
+    ctx.add_argument("--path", default=".", help="project directory (default: current)")
+    ctx.add_argument("--profile", help="simulate a project of this profile instead of --path")
+    ctx.add_argument("--technology", help="with --profile: technology preset")
+    ctx.add_argument("--database", help="with --profile: database")
+    ctx.add_argument("--json", action="store_true", help="machine-readable context package")
+    ctx.add_argument("--strict", action="store_true", help="exit 1 when over budget")
+    ctx.add_argument(
+        "--rebuild-graph",
+        action="store_true",
+        help="regenerate and validate .ai/context/graph.json from the kit sources",
     )
 
     lst = sub.add_parser("list", help="list profiles, technologies, stacks, agents...")
@@ -172,7 +193,7 @@ def _dispatch(args: argparse.Namespace, console: Console, input_fn) -> int:
         return run_init(options, catalog, console, Prompter(console, input_fn))
     if args.command == "doctor":
         root = _project_dir(args.path)
-        report = run_doctor(root, catalog.organization)
+        report = run_doctor(root, catalog.organization, catalog.routing)
         if args.format == "json":
             console.print(report.to_json())
         else:
@@ -187,6 +208,18 @@ def _dispatch(args: argparse.Namespace, console: Console, input_fn) -> int:
             check=args.check,
             force=args.force,
         )
+    if args.command == "context":
+        context_options = ContextOptions(
+            task=args.task,
+            path=args.path,
+            profile=args.profile,
+            technology=args.technology,
+            database=args.database,
+            as_json=args.json,
+            strict=args.strict,
+            rebuild_graph=args.rebuild_graph,
+        )
+        return run_context(context_options, catalog, console)
     if args.command == "list":
         return _list(catalog, console, args.what)
     raise KitError(f"Unknown command {args.command}", EXIT_USAGE)

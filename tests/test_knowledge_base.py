@@ -38,6 +38,7 @@ EXPECTED_AGENTS = [
     "12-devops",
     "13-observability",
     "14-code-review",
+    "15-context-token-optimizer",  # added in 1.1.0
 ]
 # Knowledge files are copied verbatim (they may legitimately contain `{{ }}`, e.g. Angular).
 VERBATIM_PREFIXES = (".ai/agents/", ".ai/rules/", ".ai/workflows/", ".ai/stacks/")

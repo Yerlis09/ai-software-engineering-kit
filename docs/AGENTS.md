@@ -25,9 +25,19 @@ assistant.
 | `12-devops.md` | CI/CD, Docker, Kubernetes (RKE), releases, rollback | Pipelines, deployment |
 | `13-observability.md` | Logs, metrics, traces, probes, alerts | Services in production |
 | `14-code-review.md` | Final evidence-based review, verdict APPROVE / REQUEST CHANGES | End of every task |
+| `15-context-token-optimizer.md` | Context-optimisation specialist: routing, graph, ranking and budget tuning, metrics | Only for tasks about context optimisation or routing |
 
 Each file has the same sections: Role, Objective, Responsibilities, Rules, Inputs, Outputs,
 Validation, Forbidden behavior, Collaboration with other agents.
+
+**Not every agent is loaded for every task.** Context selection is programmatic:
+`ai-project context` classifies the task, walks the local knowledge graph, ranks candidates
+(REQUIRED / RECOMMENDED / OPTIONAL) and fits them in a budget tier. The master agent receives
+that package rather than reading every agent (lazy loading, levels L0–L3, rule slices,
+deduplication): see
+[CONTEXT_OPTIMIZATION.md](CONTEXT_OPTIMIZATION.md). Security, performance, observability and
+code review are "deep review" agents. They are loaded in full only when the task is about
+them; otherwise a targeted review applies the matching rule sections.
 
 A project only receives the agents its profile needs (for example, no frontend agent in a
 backend API). `03-database.md` is added automatically when a database is selected.
@@ -46,7 +56,8 @@ sequenceDiagram
     participant D as 11 Documentation
     participant R as 14 Code Review
     H->>M: request
-    M->>M: read context/project.md, pick workflow + agents
+    M->>M: classify task, select minimum context (index, budget)
+    M->>M: read context/project.md, pick workflow + selected agents
     M->>A: design (ADR if significant)
     A-->>M: design note
     M->>I: implement within the design

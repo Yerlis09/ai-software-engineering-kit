@@ -14,12 +14,26 @@ Deliver changes that are correct, secure, tested, documented, and consistent wit
 
 - Read `context/project.md` first, then any file in `custom/` (overrides win over kit defaults).
 - Analyze requirements: goal, scope, acceptance criteria, non-goals, constraints.
+- Classify the task and select the minimum context BEFORE loading any specialist (see "Select context").
 - Analyze project context: stack (`stacks/<name>/README.md`), existing ADRs in `docs/adr/`, conventions in the codebase.
 - Select the workflow and the relevant agents; coordinate their order and hand-offs.
 - Prevent conflicting decisions between agents; record resolutions.
 - Validate architecture (with `agents/04-architecture.md`) and implementation (against acceptance criteria).
 - Trigger testing, security review, quality review, documentation updates.
 - Close every change with a final review via `agents/14-code-review.md`.
+
+## Select context
+
+Principle: load the smallest sufficient context, never at the expense of correctness, security, architecture or tests. Context selection is done by the **programmatic layer** (CLI router → knowledge graph → ranking → budget), not by reading files to decide what to read.
+
+1. Request the package: `ai-project context --task "<task>" --json`. It returns the classification, the selected agents, rule sections, workflow and stack guides (each with relevance REQUIRED / RECOMMENDED, a score and reasons), the budget tier and what was skipped and why.
+2. Load exactly that package: L0 (`AGENTS.md`, `context/project.md`, this file) plus the listed items; for sliced rules, only the listed sections (line ranges). Do not open other agents, `context/graph.json` or every rule "just in case".
+3. Respect the levels: L3 deep reviews (`agents/08-performance.md`, `agents/09-security.md`, `agents/13-observability.md`, `agents/14-code-review.md`) are in the package in full only when the task is about them; otherwise apply the targeted rule sections.
+4. Load each file or section once per task and reuse it in later steps.
+5. If the status is `OVER_BUDGET`, report it and narrow the task; REQUIRED items (security, tests, correctness) are never dropped to fit.
+6. Widen the context when the work reveals a new concern (e.g. a schema change appears → add `agents/03-database.md`) and say why.
+
+Without the CLI: use `context/index.json` (compact: paths, triggers, sizes, rule sections) to apply the same rules by hand. `agents/15-context-token-optimizer.md` is loaded only for tasks about context optimisation or routing, never on every task.
 
 ## Workflow selection
 
@@ -61,8 +75,10 @@ be added (custom profile or `.ai/custom/`).
 | Step | Produces | Exit criteria |
 |---|---|---|
 | 1. Understand | Restated goal, acceptance criteria, open questions | No blocking ambiguity left (or asked to human) |
+| 1a. Classify | Agent levels (HIGH/MEDIUM/LOW/NONE) with reasons | Every level justified by the task |
+| 1b. Select Context | Context package from `ai-project context` (graph router): agents, rule sections, workflow, stacks, budget tier | Nothing loaded without a reason; no duplicates |
 | 2. Analyze | Impacted files/modules, risks, constraints | Impact list complete; ADR conflicts identified |
-| 3. Plan | Ordered task list, chosen workflow and agents | Each task small, testable, assigned |
+| 3. Plan | Ordered task list, chosen workflow and selected agents | Each task small, testable, assigned |
 | 4. Design | Interfaces, data model, ADR if structural | Approved by `agents/04-architecture.md` rules |
 | 5. Implement | Code changes | Follows `rules/coding.md` and the stack README |
 | 6. Test | Tests added/updated, actual run output | Tests executed and passing (evidence attached) |
@@ -107,6 +123,7 @@ When the AI tool has no real sub-agents, play each role sequentially: open the a
 
 - [ ] `context/project.md` read and respected
 - [ ] Workflow chosen and stated
+- [ ] Context selected before loading specialists; selection and reasons stated
 - [ ] All lifecycle steps executed or explicitly justified as N/A
 - [ ] Conflicts resolved per priority order or escalated
 - [ ] Test/build/scan results come from actual execution, else marked NOT VALIDATED
@@ -115,6 +132,7 @@ When the AI tool has no real sub-agents, play each role sequentially: open the a
 ## Forbidden behavior
 
 - Implementing a large change alone without architecture, security, and test review.
+- Loading every agent, rule and stack guide "just in case", reading `context/graph.json` to decide what to read, or loading the same file twice.
 - Inventing requirements, APIs, or results.
 - Overriding an ADR silently.
 - Proceeding past a "stop and ask" condition.

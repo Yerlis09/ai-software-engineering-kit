@@ -90,7 +90,8 @@ def run_init(opts: InitOptions, catalog: Catalog, console: Console, prompter: Pr
             selection=selection.to_dict(),
             answers=answers,
             managed={p.path: content_hash(p.content) for p in plan if p.managed},
-            seeds=[p.path for p in plan if not p.managed],
+            seeds=[p.path for p in plan if not p.managed and not p.derived],
+            derived=[p.path for p in plan if p.derived],
         ),
     )
     _print_result(console, target, report)

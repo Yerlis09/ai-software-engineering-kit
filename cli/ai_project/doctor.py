@@ -11,17 +11,21 @@ import json
 import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable, Mapping
 
 from ai_project import __version__
 from ai_project.console import FAIL, INFO, PASS, WARN, Console
-from ai_project.errors import EXIT_FAILURE, EXIT_OK
+from ai_project.context_graph import GRAPH_PATH, check_project_graph
+from ai_project.context_index import BUDGET_PATH, INDEX_PATH, read_index
+from ai_project.context_router import parse_budget
+from ai_project.errors import EXIT_FAILURE, EXIT_OK, KitError
 from ai_project.lockfile import LOCK_PATH, file_hash, parse_version, read_lock
 from ai_project.paths import safe_join
 from ai_project.secrets_scan import Finding, is_env_file, iter_files, scan
 
 CATEGORIES = (
     "Configuration",
+    "Knowledge Graph",
     "Kit integrity",
     "Git",
     "Quality",
@@ -128,12 +132,18 @@ def _glob_regex(pattern: str) -> re.Pattern[str]:
     return re.compile(out)
 
 
-def run_doctor(root: Path, organization: dict[str, str] | None = None) -> Report:
+def run_doctor(
+    root: Path,
+    organization: dict[str, str] | None = None,
+    routing: Mapping[str, Any] | None = None,
+) -> Report:
     project = _Project(root)
     org = organization or {}
     checks: list[Check] = []
     for group in (
         _configuration,
+        _context_routing,
+        lambda p: _knowledge_graph(p, routing),
         _kit_integrity,
         lambda p: _git(p, org.get("git_server", "")),
         _quality,
@@ -213,6 +223,94 @@ def _configuration(project: _Project) -> list[Check]:
             )
         else:
             checks.append(Check(cat, "Project context", PASS))
+    return checks
+
+
+# --- Context routing -------------------------------------------------------------------------
+def _context_routing(project: _Project) -> list[Check]:
+    cat = "Configuration"
+    checks = []
+    if not project.exists(INDEX_PATH):
+        checks.append(
+            Check(
+                cat,
+                "Context index",
+                WARN,
+                f"{INDEX_PATH} missing",
+                "Run 'ai-project update' to enable context routing.",
+            )
+        )
+    elif read_index(project.text(INDEX_PATH)) is None:
+        checks.append(
+            Check(
+                cat,
+                "Context index",
+                WARN,
+                "invalid JSON or unknown schema",
+                "Run 'ai-project update' to regenerate it.",
+            )
+        )
+    else:
+        checks.append(Check(cat, "Context index", PASS))
+    if project.exists(BUDGET_PATH):
+        try:
+            parse_budget(project.text(BUDGET_PATH))
+            checks.append(Check(cat, "Context budget", PASS))
+        except KitError as exc:
+            checks.append(
+                Check(
+                    cat,
+                    "Context budget",
+                    WARN,
+                    str(exc),
+                    "Fix the values (positive integers) or delete the file.",
+                )
+            )
+    return checks
+
+
+# --- Knowledge graph ---------------------------------------------------------------------------
+GRAPH_RECOVERY = "Run 'ai-project context --rebuild-graph' (or 'ai-project update')."
+
+
+def _knowledge_graph(project: _Project, routing: Mapping[str, Any] | None) -> list[Check]:
+    """Never FAIL: a missing or bad graph only disables graph routing (direct fallback)."""
+    cat = "Knowledge Graph"
+    if routing is None:
+        return []
+    try:
+        lock = read_lock(project.root)
+    except KitError:
+        lock = None
+    result = check_project_graph(project.root, routing, __version__, lock)
+    if result.state == "missing":
+        return [Check(cat, "Graph exists", WARN, f"{GRAPH_PATH} not found", GRAPH_RECOVERY)]
+    if result.state == "invalid":
+        return [
+            Check(cat, "Graph exists", PASS),
+            Check(
+                cat,
+                "Graph validation",
+                WARN,
+                "; ".join(result.issues[:3]),
+                f"Corrupt or invalid graph (direct routing is used). {GRAPH_RECOVERY}",
+            ),
+        ]
+    stats = result.graph.stats() if result.graph else {"nodes": 0, "edges": 0}
+    checks = [
+        Check(cat, "Graph exists", PASS, f"{stats['nodes']} nodes, {stats['edges']} edges"),
+        Check(cat, "Graph structure", PASS),
+        Check(cat, "Node and edge types", PASS),
+        Check(cat, "References", PASS),
+        Check(cat, "Project paths", PASS),
+        Check(cat, "No cycles", PASS),
+    ]
+    if result.state == "stale":
+        checks.append(Check(cat, "Source fingerprint", WARN, "graph is stale", GRAPH_RECOVERY))
+    elif lock is None:
+        checks.append(Check(cat, "Source fingerprint", INFO, "no lock file: not verifiable"))
+    else:
+        checks.append(Check(cat, "Source fingerprint", PASS, "up to date"))
     return checks
 
 

@@ -13,11 +13,11 @@ from typing import Callable, Sequence, TextIO
 
 from ai_project.errors import EXIT_USAGE, KitError
 
-PASS, WARN, FAIL, INFO = "PASS", "WARN", "FAIL", "INFO"
+PASS, WARN, FAIL, INFO, SKIP = "PASS", "WARN", "FAIL", "INFO", "SKIP"
 
-_UNICODE_SYMBOLS = {PASS: "✓", WARN: "!", FAIL: "✗", INFO: "i"}
-_ASCII_SYMBOLS = {PASS: "OK", WARN: "!!", FAIL: "XX", INFO: "--"}
-_COLORS = {PASS: "32", WARN: "33", FAIL: "31", INFO: "36", "bold": "1", "dim": "2"}
+_UNICODE_SYMBOLS = {PASS: "✓", WARN: "!", FAIL: "✗", INFO: "i", SKIP: "○"}
+_ASCII_SYMBOLS = {PASS: "OK", WARN: "!!", FAIL: "XX", INFO: "--", SKIP: " o"}
+_COLORS = {PASS: "32", WARN: "33", FAIL: "31", INFO: "36", SKIP: "2", "bold": "1", "dim": "2"}
 
 
 def _enable_windows_ansi() -> bool:
@@ -44,7 +44,7 @@ class Console:
         self.color = is_tty and "NO_COLOR" not in os.environ and _enable_windows_ansi()
         encoding = getattr(self.out, "encoding", None) or "ascii"
         try:
-            "✓✗".encode(encoding)
+            "✓✗○".encode(encoding)
             self.symbols = _UNICODE_SYMBOLS
         except (UnicodeEncodeError, LookupError):
             self.symbols = _ASCII_SYMBOLS

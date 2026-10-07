@@ -53,10 +53,15 @@ class UpdatePlan:
     obsolete_modified: list[str] = field(default_factory=list)
     seeds_added: dict[str, str] = field(default_factory=dict)
     new_managed: dict[str, str] = field(default_factory=dict)
+    # v1.2 derived artefacts (graph.json, index.json): regenerated, never conflicts
+    derived: dict[str, str] = field(default_factory=dict)  # path -> content to write
+    derived_paths: list[str] = field(default_factory=list)
 
     @property
     def has_changes(self) -> bool:
-        return bool(self.write or self.conflicts or self.removed or self.seeds_added)
+        return bool(
+            self.write or self.conflicts or self.removed or self.seeds_added or self.derived
+        )
 
 
 def compute_update(root: Path, catalog: Catalog, lock: Lock) -> UpdatePlan:
@@ -91,9 +96,17 @@ def compute_update(root: Path, catalog: Catalog, lock: Lock) -> UpdatePlan:
         else:
             result.conflicts[item.path] = item.content
 
+    for item in (p for p in plan_files if p.derived):
+        result.derived_paths.append(item.path)
+        target = safe_join(root, item.path)
+        if target.is_dir():
+            raise KitError(f"Cannot update {item.path}: a directory exists at that path.")
+        if file_hash(target) != content_hash(item.content):  # missing, edited or stale
+            result.derived[item.path] = item.content
+
     for rel, base in lock.managed.items():
-        if rel in result.new_managed:
-            continue
+        if rel in result.new_managed or rel in result.derived_paths:
+            continue  # derived in v1.2 (index.json was CORE in v1.1): not obsolete
         local = file_hash(safe_join(root, rel))
         if local == base:
             result.removed.append(rel)
@@ -101,7 +114,7 @@ def compute_update(root: Path, catalog: Catalog, lock: Lock) -> UpdatePlan:
             result.obsolete_modified.append(rel)
 
     known_seeds = set(lock.seeds)
-    for item in (p for p in plan_files if not p.managed):
+    for item in (p for p in plan_files if not p.managed and not p.derived):
         if item.path not in known_seeds and not safe_join(root, item.path).exists():
             result.seeds_added[item.path] = item.content
     return result
@@ -132,7 +145,12 @@ def run_update(
     if not plan.has_changes:
         console.print()
         console.status(PASS, "Already up to date.")
-        if not check and not dry_run and lock.kit_version != __version__:
+        stale = (
+            lock.kit_version != __version__
+            or plan.new_managed != lock.managed
+            or sorted(plan.derived_paths) != sorted(lock.derived)
+        )
+        if not check and not dry_run and stale:  # e.g. a file already equal to the new kit
             _save_lock(root, lock, plan)
         return EXIT_OK
     if check:
@@ -144,7 +162,7 @@ def run_update(
         console.status(INFO, "Dry run: nothing was written.")
         return EXIT_OK
 
-    for rel, content in {**plan.write, **plan.seeds_added}.items():
+    for rel, content in {**plan.write, **plan.seeds_added, **plan.derived}.items():
         write_text(safe_join(root, rel), content)
     for rel, content in plan.conflicts.items():
         target = safe_join(root, rel)
@@ -171,6 +189,7 @@ def _save_lock(root: Path, lock: Lock, plan: UpdatePlan) -> None:
     lock.kit_version = __version__
     lock.managed = plan.new_managed
     lock.seeds = sorted(set(lock.seeds) | set(plan.seeds_added))
+    lock.derived = sorted(plan.derived_paths)
     lock.updated_at = now_iso()
     write_lock(root, lock)
 
@@ -181,6 +200,7 @@ def _print_plan(console: Console, plan: UpdatePlan, force: bool) -> None:
         (PASS, "added", plan.added),
         (PASS, "restored (was missing)", plan.restored),
         (PASS, "removed (no longer in the kit)", plan.removed),
+        (PASS, "regenerated (derived artefact, not a source of truth)", list(plan.derived)),
         (PASS, "new project file", list(plan.seeds_added)),
         (INFO, "kept (customised, kit unchanged)", plan.kept),
         (

@@ -33,6 +33,9 @@ smoke-tests the installed CLI.
 | `test_doctor.py` | Each check, exit codes, JSON output, `.env` alert, demo project health |
 | `test_update.py` | Three-way update cases, `--check`, `--dry-run`, `--force`, tampered or corrupt lock, CRLF |
 | `test_cli.py` | Help, version, list, usage errors, `python -m ai_project` |
+| `test_context.py` | Classification, selection (agents, rules, stacks), estimation, budget, slicing, dependencies and cycles, deduplication, explainability, CLI/JSON, empty or unknown input, legacy project update, measured reduction |
+| `test_graph.py` | Knowledge graph: build, save/load, rebuild, validation (duplicates, types, missing nodes, weights, path traversal, symlinks, cycles), traversal, dependency expansion, corrupt/stale graphs, fallback, `--rebuild-graph`, doctor, derived files and 1.1 migration |
+| `test_ranking_budget.py` | 14 task categories, scores and components, budget tiers and slicer, the 5 reference cases, before/after vs v1.1, L0–L3, explanations, metrics, JSON compatibility, determinism |
 
 ## Guidelines
 

@@ -1,79 +1,47 @@
 # Project context — {{ project_name }}
 
-> Project-owned. AI assistants read this file first. Keep it short, factual and current.
-> Replace every `TODO` (`ai-project doctor` warns while some remain).
+> Project-owned. Compact summary read by AI assistants at the start of every task (L0 context):
+> keep it short and factual. Unknown facts stay `TODO` (`ai-project doctor` warns while some remain).
 
-## Identity
+## Summary
 
-- **Project name:** {{ project_name }}
-- **Owner:** {{ owner }}
-- **Security contact:** {{ org_security_contact }}
-- **Created:** {{ created_date }} (kit v{{ kit_version }}, profile `{{ profile }}`)
+| Field | Value |
+|---|---|
+| Project | {{ project_name }} |
+| Purpose | {{ description }} |
+| Language | {{ language }} |
+| Framework | {{ framework }} |
+| Architecture | {{ architecture }} |
+| Database | {{ database_title }} |
+| Deployment | {{ deployment_title }} |
+| Testing | TODO: test frameworks and where tests live |
+| Commands | TODO: install, run, test, lint (one line each) |
+| Integrations | {{ external_services }} |
+| Owner | {{ owner }} |
+| Security contact | {{ org_security_contact }} |
+| Source | `{{ org_git_server }}` |
+| Kit | v{{ kit_version }}, profile `{{ profile }}`, created {{ created_date }} |
 
-## Business objective
+## Problem and users
 
-{{ description }}
+- **Problem:** {{ problem }}
+- **Users:** {{ users }}
 
-## Problem
+## Requirements
 
-{{ problem }}
+- **Functional:** {{ functional_requirements }}
+- **Non-functional:** {{ non_functional_requirements }}
+- **Security:** {{ security_requirements }} Secrets are injected at runtime (Kubernetes
+  Secrets / vault / CI masked variables), never stored in the repository or in `.env` files.
+- **Performance:** {{ performance_requirements }}
 
-## Users
+## Constraints and risks
 
-{{ users }}
+- **Constraints:** {{ constraints }}
+- **Risks:** {{ risks }}
 
-## Functional requirements
+## Pointers
 
-{{ functional_requirements }}
-
-## Non-functional requirements
-
-{{ non_functional_requirements }}
-
-## Technology stack
-
-- **Profile:** {{ profile_title }} — {{ profile_description }}
-- **Technology:** {{ technology_title }}
-- **Database:** {{ database_title }}
-- **Deployment:** {{ deployment_title }}
-
-## Architecture
-
-{{ architecture }}
-
-Decisions are recorded in `docs/adr/`. Details: `docs/architecture/README.md`.
-
-## Database
-
-{{ database_title }}. TODO: main entities, expected volumes, retention, backup/restore needs.
-
-## External services
-
-{{ external_services }}
-
-## Security requirements
-
-{{ security_requirements }}
-
-Secrets are injected at runtime (Kubernetes Secrets / vault / CI masked variables), never
-stored in the repository or in `.env` files with real values.
-
-## Performance requirements
-
-{{ performance_requirements }}
-
-## Deployment
-
-{{ deployment_title }}. Source on `{{ org_git_server }}`. TODO: URLs, namespaces, release cadence.
-
-## Constraints
-
-{{ constraints }}
-
-## Risks
-
-{{ risks }}
-
-## Recommended structure
-
+- Architecture: `docs/architecture/README.md`; decisions: `docs/adr/`.
+- Structure:
 {{ structure_list }}

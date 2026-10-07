@@ -58,6 +58,7 @@ Use gitleaks (or equivalent) in CI as well; the CI/CD stack guide shows how.
 | Malicious or invalid input | Project names validated (portable, no Windows reserved names); free text stripped of control characters and capped at 2,000 characters; bounded prompt retries; invalid choices rejected with exit code 2. |
 | Silent data loss | Existing files are never overwritten without `--force`; with `--force` a `.kit-backup` is kept. |
 | Supply chain | Zero runtime dependencies. Dev dependencies (pytest, ruff) only in `[dev]`. |
+| Context routing metadata | `catalog/context.json` is validated (identifiers, trigger syntax, weights, references, no cycles) and never executed. The router reads only `AGENTS.md`, `.ai/context/project.md` and installed `.ai/` knowledge files through `safe_join`; other paths are refused. |
 
 Validation performed for v1.0.0 is recorded in the release notes and the kit's test suite
 (`tests/test_paths_and_render.py`, `tests/test_secrets_scan.py`,

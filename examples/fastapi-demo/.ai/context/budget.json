@@ -1,0 +1,9 @@
+{
+  "_comment": "Project-owned. ESTIMATED context budget (characters / 4) used by 'ai-project context' and the master agent to keep the loaded context small. It does not control or measure the tokens billed by any AI provider.",
+  "default_token_budget": 20000,
+  "planning_budget": 8000,
+  "implementation_budget": 10000,
+  "review_budget": 5000,
+  "max_agent_context": 2500,
+  "max_stack_context": 2500
+}

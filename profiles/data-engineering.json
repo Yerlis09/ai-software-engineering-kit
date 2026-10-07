@@ -2,7 +2,7 @@
   "name": "data-engineering",
   "title": "Data Engineering",
   "description": "Ingestion, transformation and loading pipelines, analytics storage.",
-  "agents": ["00-master", "03-database", "04-architecture", "05-quality", "06-solid-patterns", "08-performance", "09-security", "10-testing", "11-documentation", "12-devops", "13-observability", "14-code-review"],
+  "agents": ["00-master", "03-database", "04-architecture", "05-quality", "06-solid-patterns", "08-performance", "09-security", "10-testing", "11-documentation", "12-devops", "13-observability", "14-code-review", "15-context-token-optimizer"],
   "agents_if_database": ["03-database"],
   "rules": ["coding", "architecture", "security", "testing", "performance", "documentation"],
   "workflows": ["new-project", "new-feature", "bug-fix", "refactoring", "security-audit", "release"],

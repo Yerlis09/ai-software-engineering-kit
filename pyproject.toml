@@ -48,13 +48,16 @@ include = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "plugins/netsf-ai-software-engineering/tests"]
+# The plugin ships plain scripts (not a package); its tests import them from here.
+pythonpath = ["plugins/netsf-ai-software-engineering/scripts",
+              "plugins/netsf-ai-software-engineering/tests"]
 addopts = "-ra"
 
 [tool.ruff]
 line-length = 100
 target-version = "py39"
-src = ["cli"]
+src = ["cli", "plugins/netsf-ai-software-engineering/scripts"]
 extend-exclude = ["examples"]
 
 [tool.ruff.lint]
@@ -63,3 +66,4 @@ ignore = ["UP006", "UP007", "UP035"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "S105", "S106"]
+"plugins/*/tests/**" = ["S101", "S105", "S106", "S108"]

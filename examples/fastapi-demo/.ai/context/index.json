@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "estimation": "Token counts are estimates (characters / 4), not the provider's actual token count.",
+  "usage": "Select the minimum context: run 'ai-project context --task \"...\" --json' (see .ai/agents/00-master.md). Derived file: do not edit. Paths are relative to the project root.",
+  "core": {
+    "AGENTS.md": {"tokens":1411},
+    ".ai/context/project.md": {"tokens":552}
+  },
+  "agents": {
+    "00-master": {"domains":[],"layer":"L0","path":".ai/agents/00-master.md","priority":"core","recommended":[],"requires":{},"summary":"Orchestration, workflow and agent selection","tokens":2268,"triggers":[]},
+    "02-backend": {"domains":["backend"],"layer":"L1","path":".ai/agents/02-backend.md","priority":"high","recommended":["09-security","11-documentation"],"requires":{"04-architecture":"MEDIUM","10-testing":"HIGH"},"summary":"API design, services, repositories, validation","tokens":1190,"triggers":["api","backend","background job","business logic","controller*","delete","django","endpoint*","express","fastapi","flask","get","graphql","handler*","integration*","job","jobs","middleware","patch","post","put","repositor*","request*","response*","rest","route","routes","server","service*","webhook*"]},
+    "04-architecture": {"domains":[],"layer":"L1","path":".ai/agents/04-architecture.md","priority":"medium","recommended":["11-documentation"],"requires":{},"summary":"Boundaries, layering, ADRs, proportional architecture","tokens":1244,"triggers":["adr","architectural","architecture","boundar*","bounded context","clean architecture","ddd","decoupl*","design","hexagonal","layer*","microservice*","module*","monolith","structure"]},
+    "05-quality": {"domains":[],"layer":"L1","path":".ai/agents/05-quality.md","priority":"medium","recommended":["06-solid-patterns"],"requires":{"10-testing":"MEDIUM"},"summary":"Readability, naming, duplication, complexity","tokens":1046,"triggers":["clean up","cleanup","code quality","complexity","dead code","duplicat*","lint*","maintainab*","naming","readab*","refactor*","rename","simplif*","smell*"]},
+    "06-solid-patterns": {"domains":[],"layer":"L1","path":".ai/agents/06-solid-patterns.md","priority":"low","recommended":["05-quality"],"requires":{},"summary":"SOLID principles and design patterns","tokens":1277,"triggers":["abstraction*","adapter","builder","decorator","dependency injection","design pattern*","facade","factory","interface*","observer","pattern*","solid","strategy"]},
+    "07-oop": {"domains":[],"layer":"L1","path":".ai/agents/07-oop.md","priority":"low","recommended":["06-solid-patterns"],"requires":{},"summary":"Encapsulation, composition, class design","tokens":965,"triggers":["class","classes","composition","encapsulat*","inheritance","object oriented","oop","polymorph*","subclass*"]},
+    "08-performance": {"domains":[],"layer":"L3","path":".ai/agents/08-performance.md","priority":"medium","recommended":["13-observability"],"requires":{"10-testing":"MEDIUM"},"summary":"Measure-first optimisation, budgets, bottlenecks","tokens":1078,"triggers":["benchmark*","bottleneck*","cach*","cpu","faster","latency","load test*","memory","optimi*","performance","profil*","scal*","slow","slowness","speed","throughput","timeout*"]},
+    "09-security": {"domains":[],"layer":"L3","path":".ai/agents/09-security.md","priority":"high","recommended":[],"requires":{"10-testing":"HIGH"},"summary":"Secure by design, OWASP, secrets and .env policy","tokens":1698,"triggers":["auth","authenticat*","authoriz*","creat*","credential*","csrf","cve","encrypt*","env","exploit*","harden*","injection","input","jwt","leak*","login","oauth","password*","path traversal","permission*","role*","sanitiz*","secret*","secure","security","sign up","signup","ssrf","token*","upload*","vulnerab*","xss"]},
+    "10-testing": {"domains":["language"],"layer":"L1","path":".ai/agents/10-testing.md","priority":"high","recommended":[],"requires":{},"summary":"Test strategy and meaningful, deterministic tests","tokens":1071,"triggers":["coverage","e2e","fixture*","flaky","jest","mock*","playwright","pytest","regression","tdd","test","testing","tests","unit test*","vitest"]},
+    "11-documentation": {"domains":[],"layer":"L1","path":".ai/agents/11-documentation.md","priority":"medium","recommended":[],"requires":{},"summary":"README, architecture docs, ADRs, diagrams","tokens":966,"triggers":["changelog","diagram*","docs","docstring*","documentation","guide","mermaid","openapi","readme","runbook*","swagger"]},
+    "12-devops": {"domains":["infra"],"layer":"L1","path":".ai/agents/12-devops.md","priority":"medium","recommended":["09-security","13-observability"],"requires":{},"summary":"CI/CD, Docker, Kubernetes, releases, rollback","tokens":1212,"triggers":["ci","container*","deploy*","devops","docker*","gitlab","helm","image","infra*","k8s","kubectl","kubernetes","nginx","pipeline*","production","release*","rke","rollback","staging","uwsgi"]},
+    "13-observability": {"domains":[],"layer":"L3","path":".ai/agents/13-observability.md","priority":"medium","recommended":["09-security"],"requires":{},"summary":"Logs, metrics, traces, probes, alerts","tokens":1211,"triggers":["alert*","grafana","liveness","log","logging","logs","metric*","monitor*","observability","opentelemetry","probe*","prometheus","readiness","slo","trace*","tracing"]},
+    "14-code-review": {"domains":[],"layer":"L3","path":".ai/agents/14-code-review.md","priority":"medium","recommended":[],"requires":{},"summary":"Evidence-based final review and verdict","tokens":1180,"triggers":["code review","merge request","pr","pull request","review"]},
+    "15-context-token-optimizer": {"domains":[],"layer":"router","path":".ai/agents/15-context-token-optimizer.md","priority":"low","recommended":[],"requires":{},"summary":"Context selection, budgets and token estimates","tokens":995,"triggers":["context analysis","context budget","context optimi*","context package","context router","context routing","context selection","graph tuning","knowledge graph","reduce tokens","routing metadata","token budget","token optimi*","tune the router"]}
+  },
+  "rules": {
+    "coding": {"agents":["01-frontend","02-backend","03-database","05-quality","06-solid-patterns","07-oop"],"path":".ai/rules/coding.md","sections":[{"heading":"","lines":[1,8],"tokens":109},{"always":true,"heading":"Guiding principles","lines":[9,17],"tokens":156},{"heading":"Naming and readability","lines":[18,25],"tokens":126},{"heading":"Functions and modules","lines":[26,35],"tokens":174},{"heading":"Types and contracts","lines":[36,42],"tokens":109},{"always":true,"heading":"Error handling","lines":[43,50],"tokens":138},{"heading":"Observability by design","lines":[51,56],"tokens":78},{"heading":"Comments and dead code","lines":[57,62],"tokens":69},{"heading":"Formatting and tooling","lines":[63,68],"tokens":71},{"heading":"Dependencies","lines":[69,73],"tokens":56},{"heading":"Version control","lines":[74,80],"tokens":108},{"heading":"Testability by design","lines":[81,84],"tokens":58}],"tokens":1249},
+    "architecture": {"agents":["04-architecture","12-devops"],"path":".ai/rules/architecture.md","sections":[{"heading":"","lines":[1,8],"tokens":116},{"always":true,"heading":"Proportionality","lines":[9,15],"tokens":120},{"heading":"Structure and boundaries","lines":[16,24],"tokens":166},{"always":true,"heading":"Dependency direction","lines":[25,32],"tokens":130},{"heading":"Integration and APIs","lines":[33,40],"tokens":131},{"heading":"Distribution","lines":[41,47],"tokens":125},{"heading":"Configuration and runtime (12-factor)","lines":[48,56],"tokens":156},{"heading":"Deployment target","lines":[57,64],"tokens":145},{"heading":"Observability by design","lines":[65,69],"tokens":54},{"heading":"Decisions and documentation","lines":[70,75],"tokens":134}],"tokens":1277},
+    "security": {"agents":["09-security"],"path":".ai/rules/security.md","sections":[{"heading":"","lines":[1,8],"tokens":106},{"always":true,"heading":"Secure by design","lines":[9,15],"tokens":130},{"heading":"Secrets management","lines":[16,31],"tokens":411},{"heading":"Input validation and output encoding","lines":[32,40],"tokens":183},{"heading":"Authentication and authorization","lines":[41,49],"tokens":173},{"heading":"Files, paths and network","lines":[50,56],"tokens":145},{"heading":"Dependencies and supply chain","lines":[57,64],"tokens":129},{"heading":"Data protection and logging","lines":[65,71],"tokens":114},{"heading":"Configuration","lines":[72,76],"tokens":69},{"heading":"Secret found? Do this","lines":[77,83],"tokens":162}],"tokens":1621},
+    "testing": {"agents":["10-testing"],"path":".ai/rules/testing.md","sections":[{"heading":"","lines":[1,8],"tokens":93},{"always":true,"heading":"Integrity","lines":[9,15],"tokens":115},{"heading":"Testable by design","lines":[16,20],"tokens":61},{"always":true,"heading":"What to test","lines":[21,30],"tokens":172},{"heading":"Test pyramid","lines":[31,37],"tokens":113},{"heading":"Determinism and isolation","lines":[38,46],"tokens":154},{"heading":"Structure and readability","lines":[47,54],"tokens":126},{"heading":"Continuous integration","lines":[55,62],"tokens":128},{"heading":"Non-functional tests","lines":[63,66],"tokens":69}],"tokens":1030},
+    "performance": {"agents":["08-performance"],"path":".ai/rules/performance.md","sections":[{"heading":"","lines":[1,8],"tokens":91},{"always":true,"heading":"Approach","lines":[9,15],"tokens":117},{"heading":"Budgets","lines":[16,21],"tokens":86},{"heading":"Data access","lines":[22,31],"tokens":161},{"heading":"Timeouts and resilience","lines":[32,39],"tokens":128},{"heading":"Caching","lines":[40,47],"tokens":124},{"heading":"Concurrency and work offloading","lines":[48,53],"tokens":79},{"heading":"Resources and runtime","lines":[54,60],"tokens":99},{"heading":"Observability","lines":[61,66],"tokens":69},{"heading":"Testing","lines":[67,70],"tokens":57}],"tokens":1009},
+    "documentation": {"agents":["11-documentation"],"path":".ai/rules/documentation.md","sections":[{"heading":"","lines":[1,8],"tokens":106},{"always":true,"heading":"General","lines":[9,17],"tokens":150},{"heading":"README","lines":[18,32],"tokens":237},{"heading":"Architecture Decision Records","lines":[33,40],"tokens":131},{"heading":"Diagrams","lines":[41,52],"tokens":200},{"heading":"Code-level documentation","lines":[53,58],"tokens":95},{"heading":"Change history","lines":[59,64],"tokens":88},{"heading":"Operations","lines":[65,70],"tokens":69},{"heading":"AI context","lines":[71,74],"tokens":56}],"tokens":1131}
+  },
+  "workflows": {
+    "new-feature": {"path":".ai/workflows/new-feature.md","tokens":1145,"triggers":["add","build","creat*","endpoint*","expose","feature","implement*","new","support"]},
+    "bug-fix": {"path":".ai/workflows/bug-fix.md","tokens":981,"triggers":["broken","bug*","crash*","error*","fail*","fix*","incident","issue","regression"]},
+    "refactoring": {"path":".ai/workflows/refactoring.md","tokens":1002,"triggers":["clean up","cleanup","improve","optimi*","refactor*","rename","restructur*","simplif*"]},
+    "security-audit": {"path":".ai/workflows/security-audit.md","tokens":1180,"triggers":["audit","harden*","pentest","security review","threat model*"]},
+    "release": {"path":".ai/workflows/release.md","tokens":1141,"triggers":["changelog","deploy*","promote","release","rollback","tag","version"]},
+    "new-project": {"path":".ai/workflows/new-project.md","tokens":1240,"triggers":["bootstrap","initial setup","new project","scaffold*","set up the project"]}
+  },
+  "stacks": {
+    "python": {"domains":["backend","data","language"],"path":".ai/stacks/python/README.md","tokens":1264,"triggers":["pip","pydantic","pytest","python"]},
+    "fastapi": {"domains":["backend"],"path":".ai/stacks/fastapi/README.md","tokens":1166,"triggers":["fastapi","uvicorn"]},
+    "docker": {"domains":["infra"],"path":".ai/stacks/docker/README.md","tokens":1129,"triggers":["container*","docker*","image"]},
+    "kubernetes": {"domains":["infra"],"path":".ai/stacks/kubernetes/README.md","tokens":1401,"triggers":["helm","k8s","kubectl","kubernetes","rke"]},
+    "nginx": {"domains":["infra"],"path":".ai/stacks/nginx/README.md","tokens":1351,"triggers":["nginx","reverse proxy","uwsgi"]},
+    "linux": {"domains":["infra"],"path":".ai/stacks/linux/README.md","tokens":906,"triggers":["bash","linux","shell","systemd"]},
+    "ci-cd": {"domains":["infra"],"path":".ai/stacks/ci-cd/README.md","tokens":1386,"triggers":["ci","github actions","gitlab","pipeline*"]}
+  },
+  "not_installed_agents": ["01-frontend","03-database"],
+  "tools": {
+    "pytest": {"name":"pytest","stacks":["python"]},
+    "ruff": {"name":"Ruff","stacks":["python"]},
+    "mypy": {"name":"mypy","stacks":["python"]},
+    "vitest": {"name":"Vitest","stacks":["react","typescript"]},
+    "docker": {"name":"Docker CLI","stacks":["docker"]},
+    "kubectl": {"name":"kubectl","stacks":["kubernetes"]},
+    "gitleaks": {"name":"gitleaks","stacks":["ci-cd"]},
+    "trivy": {"name":"Trivy","stacks":["docker"]}
+  },
+  "technologies": {
+    "python-fastapi": {"stacks":["python","fastapi","nginx"],"title":"Python + FastAPI"},
+    "python-django": {"stacks":["python","django","nginx"],"title":"Python + Django"},
+    "python-flask": {"stacks":["python","flask","nginx"],"title":"Python + Flask"},
+    "react-fastapi": {"stacks":["react","typescript","python","fastapi","nginx"],"title":"React + Python (FastAPI)"},
+    "react-django": {"stacks":["react","typescript","python","django","nginx"],"title":"React + Python (Django)"},
+    "angular-django": {"stacks":["angular","typescript","python","django","nginx"],"title":"Angular + Django"},
+    "react": {"stacks":["react","typescript","nginx"],"title":"React + TypeScript"},
+    "angular": {"stacks":["angular","typescript","nginx"],"title":"Angular + TypeScript"},
+    "node-typescript": {"stacks":["node","typescript"],"title":"Node.js + TypeScript"},
+    "python": {"stacks":["python"],"title":"Python (scripts, automation)"},
+    "python-data": {"stacks":["python","data-pipelines"],"title":"Python + data pipelines"},
+    "custom": {"stacks":[],"title":"Custom (pick stack guides)"}
+  },
+  "databases": {
+    "postgresql": {"stacks":["postgresql"],"title":"PostgreSQL"},
+    "sqlserver": {"stacks":["sqlserver"],"title":"SQL Server"},
+    "clickhouse": {"stacks":["clickhouse"],"title":"ClickHouse"},
+    "mongodb": {"stacks":["mongodb"],"title":"MongoDB"},
+    "none": {"stacks":[],"title":"None"},
+    "custom": {"stacks":[],"title":"Custom (describe it in .ai/context/project.md)"}
+  },
+  "integrations": {
+    "claude-code": {"installed":true,"title":"Claude Code (CLAUDE.md)"},
+    "copilot": {"installed":true,"title":"GitHub Copilot (.github/copilot-instructions.md)"},
+    "cursor": {"installed":false,"title":"Cursor (.cursor/rules/ai-kit.mdc)"},
+    "codex": {"installed":true,"title":"Codex and other AGENTS.md-native tools (nothing extra needed)"}
+  },
+  "profiles": {
+    "backend-api": {"current":true,"title":"Backend API"},
+    "frontend": {"current":false,"title":"Frontend"},
+    "fullstack": {"current":false,"title":"Full Stack"},
+    "python-automation": {"current":false,"title":"Python Automation"},
+    "data-engineering": {"current":false,"title":"Data Engineering"},
+    "microservice": {"current":false,"title":"Microservice"},
+    "custom": {"current":false,"title":"Custom"}
+  }
+}

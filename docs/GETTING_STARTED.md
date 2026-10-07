@@ -5,8 +5,8 @@ This guide takes you from nothing to an AI-ready project in about ten minutes.
 ## 1. Install the CLI
 
 ```bash
-pipx install "git+https://git.netsf.fr/<group>/ai-software-engineering-kit.git@v1.0.0"
-# or: pip install "git+https://git.netsf.fr/<group>/ai-software-engineering-kit.git@v1.0.0"
+pipx install "git+https://git.netsf.fr/<group>/ai-software-engineering-kit.git@v1.2.0"
+# or: pip install "git+https://git.netsf.fr/<group>/ai-software-engineering-kit.git@v1.2.0"
 ai-project version
 ```
 

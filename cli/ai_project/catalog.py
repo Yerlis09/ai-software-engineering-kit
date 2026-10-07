@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from ai_project.context_index import load_routing
 from ai_project.errors import EXIT_USAGE, KitError
 
 PROFILE_ORDER = (
@@ -28,6 +29,8 @@ class Option:
     key: str
     title: str
     stacks: tuple[str, ...] = ()
+    language: str = "TODO"
+    framework: str = "TODO"
 
 
 @dataclass(frozen=True)
@@ -115,12 +118,27 @@ class Catalog:
         self.deployments = self._load_options("deployments")
         self.assistants = self._load_options("assistants")
         self.profiles = self._load_profiles()
+        self._routing: dict[str, Any] | None = None
+
+    @property
+    def routing(self) -> dict[str, Any]:
+        """Context routing metadata (``catalog/context.json``), validated on first use."""
+        if self._routing is None:
+            self._routing = load_routing(self.root)
+        return self._routing
 
     def _load_options(self, name: str) -> dict[str, Option]:
         data = _load_json(self.root / "catalog" / f"{name}.json")
         return {
-            key: Option(key, str(value["title"]), tuple(value.get("stacks", [])))
+            key: Option(
+                key,
+                str(value["title"]),
+                tuple(value.get("stacks", [])),
+                str(value.get("language", "TODO")),
+                str(value.get("framework", "TODO")),
+            )
             for key, value in data.items()
+            if not key.startswith("_")
         }
 
     def _load_profiles(self) -> dict[str, Profile]:

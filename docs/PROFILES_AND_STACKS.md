@@ -17,6 +17,7 @@ infrastructure guides. Everything is data: `profiles/*.json` and `catalog/*.json
 | `custom` | all 15 | all | none |
 
 `03-database` is added to every profile when a database other than `none` is selected.
+Every profile also installs `15-context-token-optimizer` (routing helper, never auto-loaded).
 All profiles get the 6 rule sets and the 6 workflows.
 
 ## Technologies

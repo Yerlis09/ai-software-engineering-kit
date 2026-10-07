@@ -18,6 +18,8 @@ from pathlib import Path
 
 from ai_project import __version__
 from ai_project.catalog import Catalog, Resolved, Selection
+from ai_project.context_graph import GRAPH_PATH, build_graph, graph_sources
+from ai_project.context_index import INDEX_PATH, build_index
 from ai_project.errors import KitError
 from ai_project.lockfile import content_hash, file_hash
 from ai_project.paths import package_name, safe_join
@@ -46,6 +48,7 @@ class PlannedFile:
     path: str  # POSIX path relative to the project root
     content: str
     managed: bool
+    derived: bool = False  # regenerated from the sources; never a conflict (v1.2)
 
 
 @dataclass
@@ -71,6 +74,8 @@ def build_values(catalog: Catalog, resolved: Resolved, selection: Selection, ans
         profile_description=profile.description,
         technology=selection.technology,
         technology_title=catalog.technologies[selection.technology].title,
+        language=catalog.technologies[selection.technology].language,
+        framework=catalog.technologies[selection.technology].framework,
         database=selection.database,
         database_title=catalog.databases[selection.database].title,
         deployment=selection.deployment,
@@ -112,8 +117,8 @@ def build_plan(
     root = catalog.root
     plan: dict[str, PlannedFile] = {}
 
-    def add(path: str, content: str, managed: bool) -> None:
-        plan[path] = PlannedFile(path, content.replace("\r\n", "\n"), managed)
+    def add(path: str, content: str, managed: bool, derived: bool = False) -> None:
+        plan[path] = PlannedFile(path, content.replace("\r\n", "\n"), managed, derived)
 
     # 1. Knowledge base, copied verbatim (never rendered).
     for agent in resolved.agents:
@@ -145,13 +150,50 @@ def build_plan(
             rel = source.relative_to(files_dir).as_posix()
             add(rel, render(_read(source), values, source=str(source)), True)
 
-    # 4. Recommended directory structure (empty folders kept with .gitkeep).
+    # 4. Derived artefacts (v1.2), built last from everything above. Not sources of truth:
+    #    `update` and `ai-project context --rebuild-graph` regenerate them, never as conflicts.
+    contents = {p: f.content for p, f in plan.items()}
+    add(
+        INDEX_PATH,
+        build_index(contents, catalog.routing, _catalog_index(catalog, selection)),
+        False,
+        derived=True,
+    )
+    hashes = {p: content_hash(f.content) for p, f in plan.items() if f.managed}
+    graph = build_graph(
+        graph_sources(
+            catalog, selection.to_dict(), values["project_name"], contents, hashes, __version__
+        )
+    )
+    add(GRAPH_PATH, graph.to_json(), False, derived=True)
+
+    # 5. Recommended directory structure (empty folders kept with .gitkeep).
     for directory in resolved.profile.structure:
         rel = render(directory, values, source=f"profile {resolved.profile.name}")
         if not any(existing.startswith(rel + "/") for existing in plan):
             add(f"{rel}/.gitkeep", "", False)
 
     return list(plan.values())
+
+
+def _catalog_index(catalog: Catalog, selection: Selection) -> dict:
+    """Compact catalog entries for index.json (titles and stack lists only)."""
+    return {
+        "technologies": {
+            k: {"title": o.title, "stacks": list(o.stacks)} for k, o in catalog.technologies.items()
+        },
+        "databases": {
+            k: {"title": o.title, "stacks": list(o.stacks)} for k, o in catalog.databases.items()
+        },
+        "integrations": {
+            k: {"title": o.title, "installed": k in selection.assistants}
+            for k, o in catalog.assistants.items()
+        },
+        "profiles": {
+            k: {"title": p.title, "current": k == selection.profile}
+            for k, p in catalog.profiles.items()
+        },
+    }
 
 
 def _destination(rel: str) -> str:
@@ -210,6 +252,12 @@ def apply_plan(root: Path, plan: list[PlannedFile], force: bool = False) -> Writ
         if not target.exists():
             write_text(target, item.content)
             report.created.append(item.path)
+        elif item.derived:
+            if file_hash(target) != content_hash(item.content):
+                write_text(target, item.content)  # derived artefact: regenerated
+                report.overwritten.append(item.path)
+            else:
+                report.unchanged.append(item.path)
         elif not item.managed:
             report.skipped.append(item.path)
         elif file_hash(target) == content_hash(item.content):

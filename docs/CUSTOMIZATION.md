@@ -57,9 +57,20 @@ Available variables: `project_name`, `package_name`, `description`, `problem`, `
 `owner`, `functional_requirements`, `non_functional_requirements`, `external_services`,
 `security_requirements`, `performance_requirements`, `constraints`, `risks`, `created_date`,
 `kit_version`, `profile`, `profile_title`, `profile_description`, `technology`,
-`technology_title`, `database`, `database_title`, `deployment`, `deployment_title`,
+`technology_title`, `language`, `framework` (from `catalog/technologies.json`, `TODO` when
+unknown), `database`, `database_title`, `deployment`, `deployment_title`,
 `architecture`, `agents_table`, `rules_list`, `workflows_list`, `stacks_list`,
 `structure_list`, and `org_<key>` for each key of `catalog/organization.json`.
+
+### Tune context routing
+
+`catalog/context.json` holds the routing metadata: triggers (weight 1–5, `word`,
+`multi word` or `prefix*`), layer (`L0`, `L1`, `L3`, `router`), `requires` with levels,
+`recommended`, rule sections (`always` or triggers), stack domains and companions. Run
+`pytest tests/test_context.py` after editing: the reference cases and the validation (unknown
+references, cycles) protect against regressions. In a project, adjust the budget in
+`.ai/context/budget.json`. A custom agent dropped into `.ai/agents/` is listed as "no routing
+metadata" and loaded only when you ask for it.
 
 ### Add an AI assistant
 

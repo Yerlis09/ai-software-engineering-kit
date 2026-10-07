@@ -12,12 +12,12 @@ The kit follows [Semantic Versioning](https://semver.org/). The single source of
 | Fix, wording, clarification | PATCH (`1.0.1`) | Typo in a rule, doctor false positive |
 
 Every release adds an entry to `CHANGELOG.md` and gets a Git tag `vX.Y.Z` on git.netsf.fr.
-Projects install a tag (`...git@v1.1.0`) so the version is reproducible.
+Projects install a tag (`...git@v1.2.0`) so the version is reproducible.
 
 ## Updating a project
 
 ```bash
-pipx upgrade ai-software-engineering-kit        # or: pip install --upgrade "git+...@v1.1.0"
+pipx upgrade ai-software-engineering-kit        # or: pip install --upgrade "git+...@v1.2.0"
 cd my-project
 ai-project update --dry-run
 ai-project update

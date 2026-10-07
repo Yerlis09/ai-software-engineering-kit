@@ -1,0 +1,22 @@
+{
+  "name": "netsf-ai-software-engineering",
+  "displayName": "NETSF AI Software Engineering",
+  "version": "1.0.0",
+  "description": "Describe what you need in plain language; Claude plans, builds, tests and validates it with professional engineering standards, loading only the context each task needs.",
+  "author": {
+    "name": "NETSF"
+  },
+  "repository": "https://github.com/Yerlis09/ai-software-engineering-kit",
+  "license": "LicenseRef-NETSF-Internal",
+  "keywords": [
+    "software-engineering",
+    "context-optimization",
+    "testing",
+    "security",
+    "architecture"
+  ],
+  "metadata": {
+    "coreName": "ai-software-engineering-kit",
+    "coreCompatibility": ">=1.2.0,<1.3.0"
+  }
+}

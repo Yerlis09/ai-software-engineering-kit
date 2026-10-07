@@ -4,6 +4,13 @@ Start projects that AI coding assistants develop **like a disciplined engineerin
 understanding before coding, designing before implementing, testing, reviewing security,
 and documenting, following the team's standards.
 
+> 🇪🇸 **¿No eres desarrollador?** Empieza por la
+> [Guía del equipo (español, paso a paso)](docs/GUIA_EQUIPO.md).
+>
+> 🧩 **Using Claude Code?** Install the
+> [NETSF AI Software Engineering plugin](plugins/netsf-ai-software-engineering/README.md)
+> (`/plugin install netsf-ai-software-engineering@netsf`).
+
 ```bash
 pip install "git+https://git.netsf.fr/<group>/ai-software-engineering-kit.git"
 ai-project init
@@ -14,7 +21,11 @@ One command gives your project:
 - `AGENTS.md`: the single entry point every AI assistant reads (Claude Code, Codex, Cursor,
   Copilot...).
 - `.ai/agents/`: 15 specialised roles (backend, security, testing...) coordinated by a
-  master agent.
+  master agent, plus a context optimizer that is never loaded by default.
+- **Context routing**: each task loads only the agents, rule sections and stack guides it needs
+  (`ai-project context --task "..."`). A local **knowledge graph** (derived, regenerable JSON),
+  task classification, ranking and budget tiers pick the context. The measured reference tasks
+  load 67–76% less *estimated* context than loading everything.
 - `.ai/rules/`, `.ai/workflows/`, `.ai/stacks/`: engineering rules with citable IDs,
   step-by-step workflows, and technology guidance.
 - `.ai/context/project.md`: what your project is, which the AI reads first.
@@ -37,10 +48,10 @@ Windows, Linux and macOS.
 
 ```bash
 # Recommended: isolated install
-pipx install "git+https://git.netsf.fr/<group>/ai-software-engineering-kit.git@v1.0.0"
+pipx install "git+https://git.netsf.fr/<group>/ai-software-engineering-kit.git@v1.2.0"
 
 # or with pip (ideally in a virtual environment)
-pip install "git+https://git.netsf.fr/<group>/ai-software-engineering-kit.git@v1.0.0"
+pip install "git+https://git.netsf.fr/<group>/ai-software-engineering-kit.git@v1.2.0"
 
 ai-project version
 ```
@@ -68,6 +79,7 @@ overwritten; see [Getting started](docs/GETTING_STARTED.md).
 | `ai-project init [DIR]` | Create a project, or add the kit to an existing one |
 | `ai-project doctor` | Validate configuration, quality tooling, security, docs (exit 1 on FAIL) |
 | `ai-project update` | Refresh kit files to the installed version, keeping your customisations |
+| `ai-project context --task "..."` | Minimum context for a task: classification, ranked agents, rule sections, stacks, budget tier, reasons (`--json`, `--rebuild-graph`) |
 | `ai-project list [profiles\|technologies\|stacks\|agents...]` | Show what is available |
 | `ai-project version` | Show CLI, kit and project versions |
 | `ai-project help [command]` | Help |
@@ -117,9 +129,12 @@ non-root Dockerfile, Kubernetes manifests and a CI pipeline.
 
 | Topic | Document |
 |---|---|
+| Guía del equipo (español, no desarrolladores) | [docs/GUIA_EQUIPO.md](docs/GUIA_EQUIPO.md) |
+| Claude Code plugin (NETSF AI Software Engineering) | [plugins/netsf-ai-software-engineering/README.md](plugins/netsf-ai-software-engineering/README.md) |
 | First project, step by step | [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) |
 | CLI reference | [docs/CLI.md](docs/CLI.md) |
 | Agents and how they interact | [docs/AGENTS.md](docs/AGENTS.md) |
+| Context & token optimization | [docs/CONTEXT_OPTIMIZATION.md](docs/CONTEXT_OPTIMIZATION.md) |
 | Profiles, technologies, stacks | [docs/PROFILES_AND_STACKS.md](docs/PROFILES_AND_STACKS.md) |
 | Customising (projects and the kit) | [docs/CUSTOMIZATION.md](docs/CUSTOMIZATION.md) |
 | Versioning and updating | [docs/VERSIONING.md](docs/VERSIONING.md) |

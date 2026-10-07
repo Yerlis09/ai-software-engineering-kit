@@ -2,7 +2,7 @@
   "name": "fullstack",
   "title": "Full Stack",
   "description": "Frontend + backend API delivered together.",
-  "agents": ["00-master", "01-frontend", "02-backend", "04-architecture", "05-quality", "06-solid-patterns", "07-oop", "08-performance", "09-security", "10-testing", "11-documentation", "12-devops", "13-observability", "14-code-review"],
+  "agents": ["00-master", "01-frontend", "02-backend", "04-architecture", "05-quality", "06-solid-patterns", "07-oop", "08-performance", "09-security", "10-testing", "11-documentation", "12-devops", "13-observability", "14-code-review", "15-context-token-optimizer"],
   "agents_if_database": ["03-database"],
   "rules": ["coding", "architecture", "security", "testing", "performance", "documentation"],
   "workflows": ["new-project", "new-feature", "bug-fix", "refactoring", "security-audit", "release"],

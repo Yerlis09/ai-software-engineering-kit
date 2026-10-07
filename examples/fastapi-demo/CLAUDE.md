@@ -1,6 +1,6 @@
 # CLAUDE.md — fastapi-demo
 
-Kit-managed pointer (AI Software Engineering Kit v1.0.0). Do not duplicate content here.
+Kit-managed pointer (AI Software Engineering Kit v1.2.0). Do not duplicate content here.
 
 Read and follow `AGENTS.md` at the project root: it is the single source of truth for how to
 work on this project. Then read `.ai/context/project.md` and every file in `.ai/custom/`.

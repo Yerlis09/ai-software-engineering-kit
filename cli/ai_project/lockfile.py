@@ -44,6 +44,7 @@ class Lock:
     answers: dict[str, str]
     managed: dict[str, str] = field(default_factory=dict)
     seeds: list[str] = field(default_factory=list)
+    derived: list[str] = field(default_factory=list)  # v1.2: regenerated, never conflicts
     created_at: str = field(default_factory=now_iso)
     updated_at: str = field(default_factory=now_iso)
 
@@ -57,6 +58,7 @@ class Lock:
             "answers": self.answers,
             "managed_files": dict(sorted(self.managed.items())),
             "seed_files": sorted(self.seeds),
+            "derived_files": sorted(self.derived),
         }
         return json.dumps(data, indent=2, ensure_ascii=False) + "\n"
 
@@ -77,7 +79,7 @@ def read_lock(root: Path) -> Lock | None:
         managed = data["managed_files"]
         if not isinstance(managed, dict):
             raise TypeError("managed_files must be an object")
-        for rel in managed:
+        for rel in [*managed, *data.get("derived_files", [])]:
             safe_join(root, rel)  # a tampered lock file must not lead us outside the project
         return Lock(
             kit_version=str(data["kit_version"]),
@@ -85,6 +87,7 @@ def read_lock(root: Path) -> Lock | None:
             answers={str(k): str(v) for k, v in data.get("answers", {}).items()},
             managed={str(k): str(v) for k, v in managed.items()},
             seeds=[str(s) for s in data.get("seed_files", [])],
+            derived=[str(s) for s in data.get("derived_files", [])],
             created_at=str(data.get("created_at", "")),
             updated_at=str(data.get("updated_at", "")),
         )

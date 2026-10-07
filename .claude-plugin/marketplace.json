@@ -1,0 +1,17 @@
+{
+  "name": "netsf",
+  "owner": {
+    "name": "NETSF"
+  },
+  "description": "NETSF internal Claude Code plugins.",
+  "plugins": [
+    {
+      "name": "netsf-ai-software-engineering",
+      "source": "./plugins/netsf-ai-software-engineering",
+      "description": "AI software engineering team for Claude Code: plain-language requests, minimal context, safe changes, validated results.",
+      "version": "1.0.0",
+      "category": "development",
+      "tags": ["engineering", "context-optimization", "security", "testing"]
+    }
+  ]
+}
