@@ -53,7 +53,7 @@ class UpdatePlan:
     obsolete_modified: list[str] = field(default_factory=list)
     seeds_added: dict[str, str] = field(default_factory=dict)
     new_managed: dict[str, str] = field(default_factory=dict)
-    # v1.2 derived artefacts (graph.json, index.json): regenerated, never conflicts
+    # Derived artefacts (graph.json, index.json): regenerated, never conflicts
     derived: dict[str, str] = field(default_factory=dict)  # path -> content to write
     derived_paths: list[str] = field(default_factory=list)
 

@@ -54,7 +54,7 @@ Levels follow RFC 2119: **MUST**, **SHOULD**, **MAY**. Owner agent: `agents/10-t
 
 ## Continuous integration
 
-- **TEST-29** — MUST run the full automated test suite in CI on every merge request.
+- **TEST-29** — MUST run the full automated test suite in CI on every merge request once the project has a CI pipeline.
 - **TEST-30** — MUST block merges when tests fail.
 - **TEST-31** — SHOULD keep the unit suite fast (target: under 5 minutes) so it runs locally before each push.
 - **TEST-32** — SHOULD track coverage as a signal, with a floor that never decreases on changed code; coverage is not a goal in itself.

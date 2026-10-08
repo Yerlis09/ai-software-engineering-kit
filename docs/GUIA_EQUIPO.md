@@ -213,7 +213,7 @@ el ahorro.**
 Copia y pega en la terminal:
 
 ```bash
-pipx install "git+https://git.netsf.fr/<grupo>/ai-software-engineering-kit.git@v1.2.0"
+pipx install "git+https://git.netsf.fr/<grupo>/ai-software-engineering-kit.git@v1.3.0"
 ```
 
 > Sustituye `<grupo>` por el grupo donde está publicado el kit en git.netsf.fr (pregúntaselo al
@@ -225,7 +225,7 @@ Para comprobar que funciona:
 ai-project version
 ```
 
-Si ves algo como `ai-project 1.2.0`, ya está instalado. ✅
+Si ves algo como `ai-project 1.3.0`, ya está instalado. ✅
 
 ---
 
@@ -254,8 +254,8 @@ La herramienta te pregunta, una a una, cosas como:
 | Nombre del proyecto | `portal-clientes` |
 | Tipo de proyecto | Backend API, Frontend, Full Stack, Automatización… |
 | Tecnología | Python + FastAPI, React… |
-| Base de datos | PostgreSQL, ClickHouse, ninguna… |
-| Despliegue | Kubernetes (estándar del equipo) |
+| Base de datos | PostgreSQL, ClickHouse, ninguna… o *sin decidir* (la IA preguntará cuando haga falta) |
+| Despliegue | *Sin decidir* hasta que lo pidas; cuando se despliega, Kubernetes (estándar del equipo) |
 | Asistentes de IA | Claude, Copilot, Cursor… |
 | Objetivo del proyecto | "Que los clientes consulten sus pedidos en línea" |
 

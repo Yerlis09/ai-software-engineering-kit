@@ -112,6 +112,7 @@ def build_parser() -> argparse.ArgumentParser:
     ctx.add_argument("--profile", help="simulate a project of this profile instead of --path")
     ctx.add_argument("--technology", help="with --profile: technology preset")
     ctx.add_argument("--database", help="with --profile: database")
+    ctx.add_argument("--deployment", help="with --profile: deployment target")
     ctx.add_argument("--json", action="store_true", help="machine-readable context package")
     ctx.add_argument("--strict", action="store_true", help="exit 1 when over budget")
     ctx.add_argument(
@@ -215,6 +216,7 @@ def _dispatch(args: argparse.Namespace, console: Console, input_fn) -> int:
             profile=args.profile,
             technology=args.technology,
             database=args.database,
+            deployment=args.deployment,
             as_json=args.json,
             strict=args.strict,
             rebuild_graph=args.rebuild_graph,

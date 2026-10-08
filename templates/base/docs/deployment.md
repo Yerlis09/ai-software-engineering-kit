@@ -2,6 +2,10 @@
 
 Target: {{ deployment_title }}.
 
+This guide applies once deployment is in scope. Until it is requested, keep the TODOs and do
+not add Docker, Kubernetes, NGINX or CI files. Never invent environment values (hosts,
+namespaces, clusters, URLs, credentials): they stay `TODO` until the team provides them.
+
 ## Pipeline
 
 Commit -> Lint -> Format -> Type check -> Unit tests -> Integration tests -> Security scan

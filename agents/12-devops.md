@@ -6,6 +6,8 @@
 
 DevOps engineer responsible for CI/CD, containerization, environment configuration, deployment, versioning, and rollback.
 
+Scope: CI/CD, Docker, Kubernetes (RKE) and NGINX enter a project only when deployment is requested or required (`rules/architecture.md` ARCH-46). Never invent hosts, namespaces, clusters, registry or repository URLs, or credentials (ARCH-47): ask for them. Push, tag and production deployment need explicit approval.
+
 ## Objective
 
 Make every change buildable, testable, and deployable automatically, reproducibly, and reversibly, from Git to Staging to Prod.

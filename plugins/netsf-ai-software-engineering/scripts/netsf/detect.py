@@ -5,8 +5,8 @@ metadata files (dependency manifests, Dockerfiles, CI, Kubernetes manifests), th
 points. It never reads the whole repository. Every finding carries a confidence (0-1) and the
 evidence it is based on; uncertain findings are reported as uncertain, never as facts.
 
-Candidate for the Kit core in roadmap 1.4 (Project Understanding); kept plugin-side so the
-core 1.2.x API stays unchanged.
+Candidate for the Kit core (roadmap: Project Understanding); the core does not provide it,
+so it lives in the plugin.
 """
 
 from __future__ import annotations
@@ -151,6 +151,7 @@ class Detection:
     files_considered: int = 0
     files_read: int = 0
     truncated: bool = False
+    git: dict[str, Any] = field(default_factory=dict)
 
     def add(self, category: str, value: str, weight: float, evidence: str) -> None:
         bucket = self.findings.setdefault(category, {})
@@ -190,6 +191,7 @@ class Detection:
             "files_considered": self.files_considered,
             "files_read": self.files_read,
             "truncated": self.truncated,
+            "git": self.git,
         }
 
 
@@ -219,6 +221,7 @@ def detect(root: Path) -> Detection:
     det.files_considered = len(files)
     names = {f.lower() for f in files}
     det.mode = _mode(names)
+    det.git = git_context(root)
     det.important_dirs = sorted(
         {f.split("/")[0] for f in files if "/" in f and f.split("/")[0].lower() in IMPORTANT_DIRS}
     )
@@ -446,7 +449,7 @@ def kit_selection(det: Detection) -> dict[str, Any]:
     ]
     confidence = round(max(confidences, default=0.0), 2)
     if db_key == "none" and profile == "data-engineering":
-        db_key = "postgresql"
+        db_key = "undecided"  # a pipeline stores data, but the engine is the user's decision
     return {
         "profile": profile,
         "technology": technology,
@@ -459,6 +462,44 @@ def kit_selection(det: Detection) -> dict[str, Any]:
 def _contract_tests(det: Detection) -> bool:
     return any(
         "contract" in e for f in det.findings.get("testing", {}).values() for e in f.evidence
+    )
+
+
+def git_context(root: Path) -> dict[str, Any]:
+    """Locate the Git repository containing ``root`` by looking for ``.git`` (no Git process).
+
+    A repository found in a parent directory is reported as such: it is not assumed to belong
+    to this project.
+    """
+    start = root.resolve()
+    current = start
+    for _ in range(64):
+        if (current / ".git").exists():
+            own = current == start
+            return {
+                "own_repository": own,
+                "repository_root": str(current),
+                "parent_repository": not own,
+            }
+        if current.parent == current:
+            break
+        current = current.parent
+    return {"own_repository": False, "repository_root": None, "parent_repository": False}
+
+
+def git_note(git: dict[str, Any]) -> str:
+    """One sentence describing the repository situation for plans and reports."""
+    if git.get("own_repository"):
+        return "Own Git repository."
+    if git.get("parent_repository"):
+        return (
+            f"No Git repository of its own: {git.get('repository_root')} is a parent directory's "
+            "repository and is not used for this project. If version control is needed, propose "
+            "'git init' in the project directory and wait for approval."
+        )
+    return (
+        "No Git repository. If version control is needed, propose 'git init' in the project "
+        "directory and wait for approval; never invent a remote."
     )
 
 
@@ -477,4 +518,5 @@ def snapshot(det: Detection) -> dict[str, Any]:
         "profile": selection["profile"],
         "confidence": selection["confidence"],
         "uncertain": det.to_dict()["uncertain"],
+        "git": git_note(det.git),
     }

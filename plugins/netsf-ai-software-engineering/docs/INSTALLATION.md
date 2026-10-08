@@ -5,14 +5,14 @@
 - Claude Code with plugin support (validated with CLI 2.1.292).
 - Python 3.9+ on `PATH` as `python` (the skills fall back to `py -3` on Windows; the hook uses
   `python`, see [Troubleshooting](TROUBLESHOOTING.md)).
-- The AI Software Engineering Kit core `>=1.2.0,<1.3.0`.
+- The AI Software Engineering Kit core `>=1.3.0,<1.4.0`.
 
 ## 1. Install the core (one time per machine)
 
 ```
-pipx install "git+<KIT_REPOSITORY_URL>@v1.2.0"
+pipx install "git+<KIT_REPOSITORY_URL>@v1.3.0"
 # or
-uv tool install "git+<KIT_REPOSITORY_URL>@v1.2.0"
+uv tool install "git+<KIT_REPOSITORY_URL>@v1.3.0"
 ```
 
 `<KIT_REPOSITORY_URL>` is the Kit repository on the team's Git server (git.netsf.fr). Pinning the

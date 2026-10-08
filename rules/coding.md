@@ -54,6 +54,12 @@ Levels follow RFC 2119: **MUST** (mandatory), **SHOULD** (expected unless justif
 - **CODE-29** — SHOULD log at the right level (DEBUG/INFO/WARN/ERROR) with correlation IDs; see `agents/13-observability.md`.
 - **CODE-30** — MUST NOT log secrets, tokens or personal data.
 
+## Language, docstrings and comments
+
+- **CODE-45** — MUST write code, identifiers, comments, docstrings, log messages, config names and test names in English.
+- **CODE-46** — MUST give every non-obvious module, class, function or method a docstring explaining what it does and, when useful, why.
+- **CODE-47** — MUST keep comments and docstrings about current behaviour, never change history ("updated", "changed after…", "previously"); history goes to `CHANGELOG.md` or an ADR.
+
 ## Comments and dead code
 
 - **CODE-31** — SHOULD comment *why*, not *what*; the code explains what.
@@ -73,7 +79,7 @@ Levels follow RFC 2119: **MUST** (mandatory), **SHOULD** (expected unless justif
 
 ## Version control
 
-- **CODE-39** — MUST host code on the team Git server (git.netsf.fr) and work through merge requests.
+- **CODE-39** — MUST host code on the team Git server (git.netsf.fr) and work through merge requests; MUST NOT initialise a repository, create or invent a remote, commit, push or tag without the human's authorisation, nor use a parent directory's repository for a project that has none of its own.
 - **CODE-40** — MUST keep commits small, atomic and described with a clear message (Conventional Commits recommended).
 - **CODE-41** — MUST NOT mix refactoring, formatting and behaviour changes in the same commit.
 - **CODE-42** — MUST NOT commit generated artefacts, build outputs, `.env` files or secrets.

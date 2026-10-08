@@ -48,7 +48,7 @@ class PlannedFile:
     path: str  # POSIX path relative to the project root
     content: str
     managed: bool
-    derived: bool = False  # regenerated from the sources; never a conflict (v1.2)
+    derived: bool = False  # regenerated from the sources; never a conflict
 
 
 @dataclass
@@ -89,7 +89,7 @@ def build_values(catalog: Catalog, resolved: Resolved, selection: Selection, ans
         stacks_list="\n".join(f"- `{AI_DIR}/stacks/{s}/README.md`" for s in resolved.stacks)
         or "- (none selected)",
         structure_list="\n".join(
-            f"- `{render(d, {'package_name': package_name(name)})}/`" for d in profile.structure
+            f"- `{render(d, {'package_name': package_name(name)})}/`" for d in resolved.structure
         )
         or "- (free structure)",
     )
@@ -150,7 +150,7 @@ def build_plan(
             rel = source.relative_to(files_dir).as_posix()
             add(rel, render(_read(source), values, source=str(source)), True)
 
-    # 4. Derived artefacts (v1.2), built last from everything above. Not sources of truth:
+    # 4. Derived artefacts, built last from everything above. Not sources of truth:
     #    `update` and `ai-project context --rebuild-graph` regenerate them, never as conflicts.
     contents = {p: f.content for p, f in plan.items()}
     add(
@@ -168,7 +168,7 @@ def build_plan(
     add(GRAPH_PATH, graph.to_json(), False, derived=True)
 
     # 5. Recommended directory structure (empty folders kept with .gitkeep).
-    for directory in resolved.profile.structure:
+    for directory in resolved.structure:
         rel = render(directory, values, source=f"profile {resolved.profile.name}")
         if not any(existing.startswith(rel + "/") for existing in plan):
             add(f"{rel}/.gitkeep", "", False)

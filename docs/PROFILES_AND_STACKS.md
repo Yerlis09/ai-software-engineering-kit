@@ -24,28 +24,32 @@ All profiles get the 6 rule sets and the 6 workflows.
 
 | Key | Stack guides |
 |---|---|
-| `python-fastapi` | python, fastapi, nginx |
-| `python-django` | python, django, nginx |
-| `python-flask` | python, flask, nginx |
-| `react-fastapi` | react, typescript, python, fastapi, nginx |
-| `react-django` | react, typescript, python, django, nginx |
-| `angular-django` | angular, typescript, python, django, nginx |
-| `react` / `angular` | react or angular, typescript, nginx |
+| `python-fastapi` | python, fastapi (+ nginx when deployed) |
+| `python-django` | python, django (+ nginx when deployed) |
+| `python-flask` | python, flask (+ nginx when deployed) |
+| `react-fastapi` | react, typescript, python, fastapi (+ nginx when deployed) |
+| `react-django` | react, typescript, python, django (+ nginx when deployed) |
+| `angular-django` | angular, typescript, python, django (+ nginx when deployed) |
+| `react` / `angular` | react or angular, typescript (+ nginx when deployed) |
 | `node-typescript` | node, typescript |
 | `python` | python |
 | `python-data` | python, data-pipelines |
 | `custom` | choose any with `--stacks` (or interactively) |
 
-Databases add `postgresql`, `sqlserver`, `clickhouse` or `mongodb`. Deployments add
-`docker`, `kubernetes`, `ci-cd` and `linux`.
+Databases add `postgresql`, `sqlserver`, `clickhouse` or `mongodb`; `undecided` (the default)
+and `none` add nothing. Deployments `kubernetes` and `docker` add `docker`, `kubernetes` (for
+`kubernetes`), `ci-cd`, `linux`, the technology's serving guide (`nginx`) and the profile's
+`deploy/` folder; `undecided` (the default) adds none of them, `none` adds `ci-cd` only.
 
 ## Team defaults
 
 - Frontend: HTML / JavaScript / **React**. Backend: **Python**.
 - Serving: **NGINX + uWSGI** for WSGI apps (Django, Flask). FastAPI is ASGI and runs on
   uvicorn behind NGINX; the stack guides document this exception.
-- Source on **git.netsf.fr**; images built with **Docker**; deployed on **Kubernetes RKE**:
-  Staging first, then the same immutable image promoted to Prod.
+- Source on **git.netsf.fr**; when deployment is in scope, images built with **Docker** and
+  deployed on **Kubernetes RKE**: Staging first, then the same immutable image promoted to Prod.
+- Database: chosen per project; when persistence is needed and unspecified, the assistant asks
+  and recommends **ClickHouse**.
 
 ## Stack guide format
 

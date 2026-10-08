@@ -23,7 +23,7 @@ from ai_project.errors import KitError
 
 REQUIRED, RECOMMENDED, OPTIONAL = "REQUIRED", "RECOMMENDED", "OPTIONAL"
 
-# Calibrated on measured packages (v1.1.0): planning ~6.5k, typical totals 12k-17k estimated.
+# Calibrated on measured packages: planning ~6.5k, typical totals 12k-17k estimated.
 DEFAULT_BUDGET = {
     "default_token_budget": 20000,
     "planning_budget": 8000,
@@ -37,7 +37,7 @@ PHASE_BUDGET_KEYS = {
     "implementation": "implementation_budget",
     "review": "review_budget",
 }
-# Tier limits (v1.2), calibrated on the reference tasks measured with the graph router.
+# Tier limits, calibrated on the reference tasks measured with the graph router.
 DEFAULT_TIERS = {"simple": 12000, "normal": 16000, "complex": 24000, "security": 24000}
 TIER_NAMES = tuple(DEFAULT_TIERS)
 COMPLEX_DOMAINS = frozenset({"frontend", "backend", "database", "deployment", "performance"})
@@ -63,8 +63,8 @@ def _load(text: str | None, source: str) -> dict[str, Any]:
 
 
 def parse_budget(text: str | None, source: str = BUDGET_PATH) -> dict[str, int]:
-    """Validate a budget file (v1.1 keys). Missing keys fall back to defaults; bad values
-    are errors. The v1.2 ``budgets`` block is validated here too (see ``parse_tiers``)."""
+    """Validate a budget file. Missing keys fall back to defaults; bad values are errors.
+    The optional ``budgets`` block (tier limits) is validated too (see ``parse_tiers``)."""
     budget = dict(DEFAULT_BUDGET)
     data = _load(text, source)
     for key, value in data.items():
@@ -82,12 +82,12 @@ def parse_budget(text: str | None, source: str = BUDGET_PATH) -> dict[str, int]:
 
 
 def parse_tiers(text: str | None, source: str = BUDGET_PATH) -> dict[str, int]:
-    """Tier limits. Missing tiers use the defaults. A v1.1 file (``default_token_budget``
-    without ``budgets``) keeps its v1.1 meaning: that single value applies to every tier."""
+    """Tier limits. Missing tiers use the defaults. A single-budget file
+    (``default_token_budget`` without ``budgets``) applies that one value to every tier."""
     data = _load(text, source)
     tiers = dict(DEFAULT_TIERS)
     if "default_token_budget" in data and "budgets" not in data:
-        # v1.1 file: one budget for every task, exactly as before (backward compatibility)
+        # Single-budget file: the same limit applies to every task.
         single = _positive_int(data["default_token_budget"], f"{source}: default_token_budget")
         return dict.fromkeys(tiers, single)
     raw = data.get("budgets", {})

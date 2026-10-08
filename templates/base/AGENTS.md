@@ -31,19 +31,11 @@ Understand -> Classify -> Select Context -> Analyze -> Plan -> Design -> Impleme
 
 ### Context routing: load the smallest sufficient context
 
-- **Lazy loading**: never open an agent, rule, workflow or stack guide the task does not need.
-  Run `ai-project context --task "<task>" --json` (or use `.ai/context/index.json`) to get the
-  selection and the reason for each item; the CLI ranks context with a local knowledge graph
-  (`.ai/context/graph.json`, derived, never edited by hand). Optimising context never outranks
-  correctness, security, architecture or tests.
-- **Levels**: L0 core (this file, `.ai/context/project.md`, the master agent) is always loaded.
-  L1 specialists and L2 stack guides are loaded only when selected. L3 deep reviews (security,
-  performance, observability, code review) are loaded in full only when the task is about them;
-  otherwise apply the listed rule sections (targeted review).
-- **Slices and deduplication**: load only the listed sections of rule files, and load each file
-  once per task. Reuse the package instead of reloading files.
-- **Budget**: `.ai/context/budget.json` holds the *estimated* budget (characters / 4, not
-  provider tokens). If the selection is over budget, say so; never drop security or tests to fit.
+Run `ai-project context --task "<task>" --json` (or use `.ai/context/index.json`) and load only
+the selected agents, rule sections, workflow and stack guides, once each. L0 (this file,
+`.ai/context/project.md`, the master agent) is always loaded. Budgets in
+`.ai/context/budget.json` are estimates: if over budget, say so and never drop security or
+tests. Details: `.ai/agents/00-master.md`, "Select context".
 
 Pick the workflow that matches the task:
 
@@ -76,10 +68,13 @@ Project-specific overrides: `.ai/custom/*.md` — read all of them; they win ove
   policy: raise a clear warning and propose Kubernetes Secrets / a vault / CI masked variables.
 - Never disable security controls, delete or skip tests, or weaken validation to "make it work".
 - Every behaviour change ships with tests and documentation in the same change.
-- Ask the human before: destructive data operations, new major dependencies, architecture
-  changes contradicting an ADR, or when requirements are ambiguous.
-- Code lives on `{{ org_git_server }}`; deliverables are Docker images deployed to
-  Kubernetes ({{ org_deploy_environments }}) unless `.ai/context/project.md` says otherwise.
+- Technical choices are yours (explain them). Ask only for business ambiguity, an unspecified
+  database when persistence is needed (default: ClickHouse), external systems and infrastructure
+  values; never invent them (ARCH-42–47). No Docker, Kubernetes, NGINX or CI until deployment is
+  requested (see Deployment above; then Docker on {{ org_deploy_environments }}).
+- Dry run or "do not modify": no file, dependency, Git or deploy change. Never use a parent
+  directory's Git repository or invent a remote; `git init`, commit, push and tag need approval.
+- English code, comments and docs that describe current behaviour, not history (CODE-45–47).
 
 ## 5. Validation before you say "done"
 

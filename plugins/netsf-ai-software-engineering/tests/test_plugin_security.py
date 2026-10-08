@@ -109,6 +109,10 @@ def bash(command: str) -> dict:
         "chmod -R 777 /srv",
         "cat .env",
         "Get-Content .env",
+        "git init",
+        "git commit -m 'x'",
+        "git push origin feature",
+        "git tag v1.0.0",
     ],
 )
 def test_dangerous_commands_require_confirmation(command: str) -> None:
@@ -133,8 +137,8 @@ def test_secret_exfiltration_is_denied(command: str) -> None:
     "command",
     [
         "git status",
-        "git push origin feature",
-        "git commit -m 'x'",
+        "git tag",
+        "git tag -l",
         "pytest -q",
         "ls -la",
         "rm build/output.txt",

@@ -1,6 +1,6 @@
 # .ai/context/ — context selection
 
-Kit-managed overview (AI Software Engineering Kit v1.2.0). AI assistants do not need
+Kit-managed overview (AI Software Engineering Kit v1.3.0). AI assistants do not need
 to read the JSON files below: they run `ai-project context --task "<task>" --json` and load the
 context package it returns.
 

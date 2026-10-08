@@ -1,6 +1,11 @@
 # Architecture — {{ project_name }}
 
 > Project-owned. Keep diagrams in sync with the code (see `.ai/agents/11-documentation.md`).
+>
+> Scope: database **{{ database_title }}**; deployment **{{ deployment_title }}**.
+> Elements marked *(if deployed)* and the Deployment section apply only when deployment is
+> in scope. Persistence is added only when the requirements need it and the database has
+> been chosen. Remove what does not apply.
 
 ## Overview
 
@@ -47,7 +52,7 @@ flowchart LR
 TODO: link the OpenAPI specification and event schemas; they are versioned and backward
 compatible (consumer-driven contract tests in `tests/contract`).
 
-## Deployment
+## Deployment (if deployed)
 
 ```mermaid
 flowchart LR

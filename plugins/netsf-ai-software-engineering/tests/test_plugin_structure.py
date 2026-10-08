@@ -44,7 +44,7 @@ def test_manifest_and_marketplace_are_consistent() -> None:
     assert market["name"] == "netsf"
     entry = next(p for p in market["plugins"] if p["name"] == NAME)
     assert entry["source"] == f"./plugins/{NAME}" and entry["version"] == plugin["version"]
-    assert plugin["metadata"]["coreCompatibility"] == ">=1.2.0,<1.3.0"
+    assert plugin["metadata"]["coreCompatibility"] == ">=1.3.0,<1.4.0"
 
 
 def test_compatibility_constant_matches_manifest() -> None:
@@ -107,8 +107,10 @@ def test_all_agents_present_and_optimizer_is_restricted() -> None:
 
 def test_hooks_are_minimal_security_guardrails() -> None:
     hooks = json.loads((PLUGIN / "hooks/hooks.json").read_text("utf-8"))["hooks"]
-    assert set(hooks) == {"PreToolUse"}
+    assert set(hooks) == {"PreToolUse", "UserPromptSubmit"}
     (entry,) = hooks["PreToolUse"]
+    (prompt_entry,) = hooks["UserPromptSubmit"]
+    assert prompt_entry["hooks"][0]["command"] == entry["hooks"][0]["command"]
     for tool in ("Bash", "PowerShell", "Read", "Edit", "Write"):
         assert tool in entry["matcher"].split("|")
     (command,) = entry["hooks"]
@@ -170,5 +172,5 @@ def test_eval_cases_use_documented_format(case: str) -> None:
         assert (directory / "fixture.sh").is_file()
 
 
-def test_eight_eval_cases_prepared() -> None:
-    assert len([p for p in (PLUGIN / "evals").iterdir() if p.is_dir()]) == 8
+def test_eleven_eval_cases_prepared() -> None:
+    assert len([p for p in (PLUGIN / "evals").iterdir() if p.is_dir()]) == 11

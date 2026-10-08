@@ -3,7 +3,9 @@
 | Symptom | Cause | Fix |
 |---|---|---|
 | `core status MISSING` | `ai-project` not on `PATH` and not importable | Install the core (see [Installation](INSTALLATION.md)); reopen Claude Code so `PATH` refreshes |
-| `core status INCOMPATIBLE` | Core outside `>=1.2.0,<1.3.0` | Reinstall pinned: `pipx install --force "git+<KIT_REPOSITORY_URL>@v1.2.0"` |
+| `core status INCOMPATIBLE` | Core outside `>=1.3.0,<1.4.0` (for example an older 1.2.0 still installed) | Reinstall pinned: `pipx install --force "git+<KIT_REPOSITORY_URL>@v1.3.0"` (or `uv tool install --force ...`) |
+| Changes are denied: "read-only mode" / "the user asked not to …" | A dry run or "do not …" request is still active for this session | Say "exit dry-run" (or "ya puedes modificar", "apply the plan"). The state lives in `$CLAUDE_PLUGIN_DATA/readonly/` |
+| The plan says `ASK THE USER` for the database | The idea needs stored data and no database was named | Answer with the database (ClickHouse is the team default) |
 | State `DIRECT` | Core missing, incompatible, timed out or returned invalid JSON | Run `/netsf-ai-software-engineering:setup`; work continues with essential rules meanwhile |
 | State `DEGRADED` | Project not initialised with the Kit, or graph missing/invalid | Optional: `ai-project init .` then `ai-project context --rebuild-graph` |
 | State `BLOCKED` with a path message | Core output contained an unsafe path or line range | Run `ai-project doctor`; check `.ai/` for tampering; reinstall the core |

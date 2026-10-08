@@ -108,6 +108,16 @@ _RULES: list[tuple[str, str, str]] = [
         r"install|destroy|aplica\w*)\b|\bdeploy\w*\b.{0,40}\b(kubernetes|k8s|staging)\b",
         "infrastructure change (non-production)",
     ),
+    (
+        "HIGH",
+        r"\bgit\s+(init|commit|push|tag)\b"
+        r"|\b(commit|push)\w*\b.{0,30}\b(changes?|code|branch|remote|origin|repo\w*|main|master"
+        r"|cambios|c[oó]digo|rama)\b"
+        r"|\b(initiali[sz]e\w*|inicializ\w*)\b.{0,20}\bgit\b"
+        r"|\bhaz(er)?\s+(un\s+)?(commit|push)\b"
+        r"|\b(create|crea\w*)\s+(a\s+|un\s+)?(release\s+)?tag\b",
+        "Git history or remote change (init, commit, push, tag): needs the user's authorisation",
+    ),
     ("HIGH", r"(\.env\b|secrets?|credentials?|contrase\w*)", "work involving secrets"),
     (
         "MEDIUM",

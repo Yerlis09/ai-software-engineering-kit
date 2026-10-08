@@ -5,24 +5,92 @@ versions follow [Semantic Versioning](https://semver.org/) (see `docs/VERSIONING
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-07
+
+MINOR release: scope and decision policies (1A pre-production hardening). The context engine,
+lock schema (1) and the JSON keys of `ai-project context` are unchanged; `init` defaults change.
+
+### Changed
+
+- **Database and deployment are decisions, not defaults.** `init` (and the `context --profile`
+  simulation) record `undecided` when they are not chosen (frontend: database `none`). New
+  catalog values `undecided` for databases and deployments. With deployment `undecided` or
+  `none`, no Docker/Kubernetes/CI guides, no NGINX serving guide and no `deploy/` folder are
+  added. Previously the defaults were `postgresql` and `kubernetes`; pass them explicitly to
+  keep that setup (`--database postgresql --deployment kubernetes`).
+- Technologies list NGINX as a `serving_stacks` entry, installed only when deployment is in
+  scope.
+- **Knowledge:** new always-routable policy sections `rules/architecture.md` "Scope and
+  decisions" (ARCH-42..47: requirements first, technical autonomy, ask only what cannot be
+  inferred, database question with ClickHouse as recommendation, deployment as a separate
+  scope, never invent infrastructure values) and `rules/coding.md` "Language, docstrings and
+  comments" (CODE-45..47: English, functional docstrings, no change history in code).
+  DOC-30..32 (current-state English docs, documentation review before done, no unverified
+  claims). Deployment rules (ARCH-31..35, ARCH-14, TEST-29, DOC-07) apply when deployment or CI
+  exist. CODE-39: no `git init`, remote, commit, push or tag without authorisation; never use a
+  parent directory's repository.
+- `agents/00-master.md`: requirements labelling, decision and execution-authority section; the
+  "stop and ask" list no longer asks the human to approve frameworks or libraries.
+  `agents/03-database.md` and `agents/12-devops.md` state their scope.
+- `workflows/new-project.md`: requirements first, autonomous stack choice, database only when
+  confirmed, repository initialised only with approval, deployment steps only when in scope.
+- `templates/base/AGENTS.md`: decision, scope, dry-run, Git and language rules; condensed
+  context-routing section (details in the master agent). Architecture templates mark NGINX and
+  deployment content "(if deployed)"; `docs/deployment.md` states it applies once deployment is
+  in scope.
+- `doctor`: a project that only sits inside a parent directory's Git repository is a WARN (it
+  was a PASS); repository and remote hints never suggest invented URLs; a missing CI pipeline is
+  INFO when deployment is not in scope.
+- Code comments that recorded version history were rewritten to describe current behaviour;
+  the `context` text output says "direct (fallback)".
+
 ### Added
 
-- **Claude Code plugin `netsf-ai-software-engineering` 1.0.0** in
-  `plugins/netsf-ai-software-engineering/`, plus the marketplace manifest
-  `.claude-plugin/marketplace.json` (marketplace `netsf`). It is a separate deliverable
-  with its own version and requires core `>=1.2.0,<1.3.0`. It adds:
-  - a master skill, 3 user commands (plan, context, setup) and 13 thin specialist agents;
-  - project detection, risk assessment with approval gates, dry-run plans with impact analysis;
-  - trust labelling of context and a deterministic PreToolUse safety hook;
-  - a reproducible context benchmark and 8 prepared (not executed) `claude plugin eval` cases.
-  See the plugin README.
-- `pyproject.toml`: the plugin tests are added to `testpaths`/`pythonpath`, with ruff
-  `src`/per-file-ignores for the plugin.
+- `ai-project context --deployment` for simulated projects.
+- `doctor` check "Code comments (English, current behaviour)": heuristic WARN for
+  change-history and non-English comments/docstrings (`cli/ai_project/code_hygiene.py`;
+  `ai-kit: allow-comment` marks an exception).
+- Tests: `tests/test_policies.py` (defaults, scope routing, knowledge policies, rule metadata,
+  comment hygiene of the kit's own code, doctor checks).
 
-### Unchanged
+### Tests changed intentionally
 
-- **The core stays at 1.2.0.** The plugin only uses the existing public CLI (`ai-project version`,
-  `ai-project context --json`). Core code, commands, lock schema and tests are unchanged.
+- `tests/test_context.py`: the `package()` helper now states the scenario explicitly
+  (PostgreSQL + Kubernetes, as the former defaults) because routing tests describe a deployed
+  project with a database.
+- `tests/test_init.py::test_interactive_wizard`: the default deployment is now `undecided`;
+  the test also asserts that no deployment guide or `deploy/` folder is created.
+- Version-history comments in tests were rewritten (the history of those test changes is in
+  the 1.2.0 entry below).
+
+### Claude Code plugin `netsf-ai-software-engineering` 1.1.0
+
+Separate deliverable in `plugins/netsf-ai-software-engineering/` with the marketplace manifest
+`.claude-plugin/marketplace.json` (marketplace `netsf`); requires core `>=1.3.0,<1.4.0`.
+
+- Master skill, 3 user commands (plan, context, setup), 13 thin specialist agents; project
+  detection, risk assessment with approval gates, dry-run plans with impact analysis; trust
+  labelling of context; deterministic safety hook; reproducible context benchmark.
+- **Scope signals** (`scripts/netsf/scope.py`): database (named / ask the user / none for
+  file-only workflows) and deployment (requested or not, target or question) for plans and
+  routing; the core simulation receives `--database`/`--deployment` accordingly.
+- **Project type from the request**: an empty or unrecognised project is classified from the
+  core's task classification (no manual profile choice); `--profile/--technology` remain as an
+  advanced override.
+- **Git context**: own repository, parent directory's repository (reported, never used) or
+  none; shown in plans with the `git init`-with-approval question.
+- **Deterministic execution restrictions** (`scripts/netsf/readonly.py`): a `UserPromptSubmit`
+  hook records "dry run", "analysis only", "do not modify / install / commit / push / deploy"
+  (English and Spanish) per session until the user says "exit dry-run"; the `PreToolUse` hook
+  denies the restricted actions (full read-only: edits denied, only allow-listed read-only shell
+  commands). Claude Code plan mode counts as read-only.
+- Guard: `git init`, `git commit`, `git push` and tag creation ask for confirmation; risk
+  assessment rates Git history/remote changes HIGH (approval required).
+- 11 prepared (not executed) `claude plugin eval` cases, including database clarification,
+  file-only workflow and dry run.
+- Plugin tests changed intentionally: core compatibility range 1.3; `git commit`/`git push`
+  moved from "normal" to "require confirmation"; hooks now include `UserPromptSubmit`.
+- `pyproject.toml`: plugin tests in `testpaths`/`pythonpath`, ruff `src`/per-file-ignores.
 
 ## [1.2.0] - 2026-10-06
 

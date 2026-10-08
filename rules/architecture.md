@@ -13,6 +13,15 @@ Levels follow RFC 2119: **MUST**, **SHOULD**, **MAY**. Owner agent: `agents/04-a
 - **ARCH-03** — MUST NOT introduce layers, patterns or infrastructure without a current, concrete need (YAGNI).
 - **ARCH-04** — SHOULD prefer boring, proven technology already used by the team over novel options.
 
+## Scope and decisions
+
+- **ARCH-42** — MUST turn the request into requirements first (goal, actors, inputs, outputs, business rules, data and persistence, external dependencies, security, performance, deployment, acceptance criteria, constraints, unknowns), labelled as explicit requirement, technical decision, missing business decision or assumption.
+- **ARCH-43** — MUST decide technical choices (language, framework, libraries, structure, patterns, testing, errors, logging) and explain significant ones; MUST NOT ask the human to choose options that can reasonably be decided.
+- **ARCH-44** — MUST ask only what cannot be inferred: ambiguous business meaning, external systems' identity or access, real infrastructure values, and the database (ARCH-45).
+- **ARCH-45** — MUST ask which database to use when persistence is required and none is specified (MAY recommend ClickHouse, the team default); MUST NOT add a database when no persistence is needed (e.g. file in, file out).
+- **ARCH-46** — MUST add Docker, Kubernetes (RKE), NGINX, CI/CD or production configuration only when deployment is requested or required; ask for a missing target environment.
+- **ARCH-47** — MUST NOT invent IP addresses, hostnames, namespaces, clusters, repository URLs, credentials or production configuration; keep them `TODO`.
+
 ## Structure and boundaries
 
 - **ARCH-05** — MUST separate concerns into clear layers or modules: presentation, application, domain, infrastructure.
@@ -27,7 +36,7 @@ Levels follow RFC 2119: **MUST**, **SHOULD**, **MAY**. Owner agent: `agents/04-a
 - **ARCH-11** — MUST point dependencies inward: infrastructure → application → domain, never the reverse.
 - **ARCH-12** — MUST invert dependencies on infrastructure through interfaces/ports owned by the inner layer.
 - **ARCH-13** — MUST NOT allow circular dependencies between modules, packages or services.
-- **ARCH-14** — SHOULD enforce dependency rules automatically (import linters, architecture tests) in CI.
+- **ARCH-14** — SHOULD enforce dependency rules automatically (import linters, architecture tests), in CI when the project has a pipeline.
 - **ARCH-15** — MUST wire concrete implementations at a single composition root.
 
 ## Integration and APIs
@@ -55,6 +64,8 @@ Levels follow RFC 2119: **MUST**, **SHOULD**, **MAY**. Owner agent: `agents/04-a
 - **ARCH-30** — MUST expose health endpoints (liveness, readiness) for orchestration.
 
 ## Deployment target
+
+Applies when deployment is in scope (ARCH-46).
 
 - **ARCH-31** — MUST package every deployable as a Docker image built once from a versioned Dockerfile.
 - **ARCH-32** — MUST deploy to Kubernetes (RKE): Staging first, then promote the *same* image to Prod.

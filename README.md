@@ -48,10 +48,10 @@ Windows, Linux and macOS.
 
 ```bash
 # Recommended: isolated install
-pipx install "git+https://git.netsf.fr/<group>/ai-software-engineering-kit.git@v1.2.0"
+pipx install "git+https://git.netsf.fr/<group>/ai-software-engineering-kit.git@v1.3.0"
 
 # or with pip (ideally in a virtual environment)
-pip install "git+https://git.netsf.fr/<group>/ai-software-engineering-kit.git@v1.2.0"
+pip install "git+https://git.netsf.fr/<group>/ai-software-engineering-kit.git@v1.3.0"
 
 ai-project version
 ```

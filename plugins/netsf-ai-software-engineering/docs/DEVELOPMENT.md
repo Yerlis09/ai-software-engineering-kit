@@ -30,6 +30,10 @@ Test conventions:
   `from conftest import ...`, and a second module named `conftest` would shadow theirs. Import
   the `kit_project` fixture explicitly: `from netsf_testkit import kit_project as kit_project`.
 - `pyproject.toml` adds the plugin `scripts/` and `tests/` to `pythonpath`.
+- The tests run against this repository's core (`netsf_testkit` points the bridge at
+  `python -m ai_project`), so a different globally installed `ai-project` cannot change
+  results. The benchmark uses the core on `PATH`; remove an older global install from `PATH`
+  (or upgrade it) to measure the current core.
 - `tests/scenarios.py` defines the 8 integration projects (Python backend, FastAPI, ClickHouse,
   automation, frontend, microservice, Docker, Kubernetes) with expected detection and routing.
 

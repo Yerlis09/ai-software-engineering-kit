@@ -13,6 +13,11 @@ from typing import Any
 from ai_project.context_index import load_routing
 from ai_project.errors import EXIT_USAGE, KitError
 
+UNDECIDED = "undecided"
+# Deployment choices that keep deployment out of the project's scope: no serving stack
+# (NGINX) and no ``deploy/`` folder are added until deployment is requested.
+OUT_OF_SCOPE_DEPLOYMENTS = ("none", UNDECIDED)
+
 PROFILE_ORDER = (
     "backend-api",
     "frontend",
@@ -31,6 +36,7 @@ class Option:
     stacks: tuple[str, ...] = ()
     language: str = "TODO"
     framework: str = "TODO"
+    serving_stacks: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -94,6 +100,7 @@ class Resolved:
     workflows: tuple[str, ...]
     stacks: tuple[str, ...]
     assistants: tuple[str, ...] = field(default=())
+    structure: tuple[str, ...] = field(default=())
 
 
 def _load_json(path: Path) -> Any:
@@ -101,6 +108,15 @@ def _load_json(path: Path) -> Any:
         return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         raise KitError(f"Cannot read kit file {path}: {exc}") from None
+
+
+def deployment_in_scope(deployment: str) -> bool:
+    """Whether the selected deployment brings deployment content into the project."""
+    return deployment not in OUT_OF_SCOPE_DEPLOYMENTS
+
+
+def _is_deploy_dir(directory: str) -> bool:
+    return directory == "deploy" or directory.startswith("deploy/")
 
 
 def _unique(items) -> tuple[str, ...]:
@@ -136,6 +152,7 @@ class Catalog:
                 tuple(value.get("stacks", [])),
                 str(value.get("language", "TODO")),
                 str(value.get("framework", "TODO")),
+                tuple(value.get("serving_stacks", [])),
             )
             for key, value in data.items()
             if not key.startswith("_")
@@ -214,8 +231,10 @@ class Catalog:
             raise KitError(f"Profile '{profile.name}' references missing agents: {missing}")
         order = {name: i for i, name in enumerate(sorted(available_agents))}
 
+        deployed = deployment_in_scope(selection.deployment)
         stacks = [
             *technology.stacks,
+            *(technology.serving_stacks if deployed else ()),
             *database.stacks,
             *deployment.stacks,
             *profile.stacks,
@@ -228,6 +247,7 @@ class Catalog:
             workflows=profile.workflows,
             stacks=tuple(s for s in _unique(stacks) if s in available_stacks),
             assistants=_unique(selection.assistants),
+            structure=tuple(d for d in profile.structure if deployed or not _is_deploy_dir(d)),
         )
 
     @staticmethod

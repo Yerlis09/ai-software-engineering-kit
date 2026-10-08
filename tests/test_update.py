@@ -193,8 +193,8 @@ def test_lock_is_refreshed_when_local_file_already_matches_new_kit(
     (kit_copy / "rules" / "coding.md").write_text(new_content, encoding="utf-8")
     (project / ".ai/rules/coding.md").write_text(new_content, encoding="utf-8")
     result = run("update", "--path", str(project))
-    # v1.2: the knowledge graph fingerprint includes knowledge-file hashes, so the derived
-    # graph.json is regenerated (intended: a changed source makes the graph stale). The core
+    # The knowledge graph fingerprint includes knowledge-file hashes, so the derived
+    # graph.json is regenerated (a changed source makes the graph stale). The core
     # file itself is neither a conflict nor 'updated': it already equals the new kit content.
     assert result.code == 0 and "CONFLICT" not in result.out
     assert ".ai/rules/coding.md" not in result.out

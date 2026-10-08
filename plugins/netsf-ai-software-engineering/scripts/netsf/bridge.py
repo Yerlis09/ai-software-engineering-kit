@@ -21,10 +21,11 @@ from netsf.core import (
     render_markdown,
     run_core,
 )
-from netsf.detect import detect, kit_selection, snapshot
+from netsf.detect import UNCERTAIN, Detection, detect, kit_selection, snapshot
 from netsf.plan import build_plan, render_plan, specialists
 from netsf.risk import assess
 from netsf.safety import clean_task
+from netsf.scope import assess_scope, infer_project
 
 DIRECT_GUIDANCE = (
     "DIRECT MODE: the Kit core is not available, so no curated context was loaded. Work with "
@@ -84,56 +85,144 @@ def cmd_detect(args: argparse.Namespace) -> int:
 
 
 def route(
-    task: str, root: Path, info: CoreInfo
-) -> tuple[str, dict[str, Any] | None, list[str], bool]:
-    """Ask the core for the context package. Returns (state, package, notes, project_mode)."""
-    if info.status != "OK":
-        return DIRECT, None, [info.message], False
+    task: str,
+    root: Path,
+    info: CoreInfo,
+    det: Detection | None = None,
+    overrides: dict[str, str] | None = None,
+) -> tuple[str, dict[str, Any] | None, list[str], bool, dict[str, Any]]:
+    """Ask the core for the context package.
+
+    Returns (state, package, notes, project_mode, meta). ``meta`` holds the project type used
+    for routing, the scope signals (database, deployment) and the Git situation.
+    """
+    det = det or detect(root)
+    scope = assess_scope(
+        task, det.values("databases", UNCERTAIN), det.values("deployment", UNCERTAIN)
+    )
     project_mode = (root / ".ai" / "kit.lock.json").is_file()
+    meta: dict[str, Any] = {"scope": scope.to_dict(), "git": det.git, "project_type": None}
     notes: list[str] = []
+    if project_mode:
+        meta["project_type"] = _lock_project_type(root)
+    else:
+        meta["project_type"] = _detected_project_type(det)
+    if info.status != "OK":
+        return DIRECT, None, [info.message], False, meta
     if project_mode:
         argv = ["context", "--path", str(root), "--task", task, "--json"]
     else:
-        det = detect(root)
-        sel = kit_selection(det)
+        project_type = _simulated_project_type(task, det, info, overrides or {})
+        meta["project_type"] = project_type
+        database = scope.database_value
+        if scope.database == "not-applicable":
+            database = "undecided" if det.mode == "new" else kit_selection(det)["database"]
         argv = [
             "context",
             "--profile",
-            sel["profile"],
+            project_type["profile"],
             "--technology",
-            sel["technology"],
+            project_type["technology"],
             "--database",
-            sel["database"],
+            database,
+            "--deployment",
+            scope.deployment_target,
             "--task",
             task,
             "--json",
         ]
         notes.append(
-            f"Project not initialised with the Kit: routing simulated as "
-            f"{sel['profile']}/{sel['technology']}/{sel['database']} "
-            f"(detection confidence {sel['confidence']:.0%})."
+            "Project not initialised with the Kit: routing simulated as "
+            f"{project_type['profile']}/{project_type['technology']}/{database}, deployment "
+            f"{scope.deployment_target} (from {project_type['source']})."
         )
-        if sel["confidence"] < LOW_CONFIDENCE:
+        if (
+            project_type["source"] == "detection"
+            and project_type.get("confidence", 1.0) < LOW_CONFIDENCE
+        ):
             notes.append("Low detection confidence: confirm the technology before large changes.")
     try:
         result = run_core(info.command, argv)
         package = json.loads(result.stdout)
     except (OSError, subprocess.SubprocessError, ValueError) as exc:
-        return DIRECT, None, [f"Core context call failed ({exc})."], project_mode
+        return DIRECT, None, [f"Core context call failed ({exc})."], project_mode, meta
     if result.returncode != 0 or not isinstance(package, dict):
-        return DIRECT, None, [f"Core context call failed (exit {result.returncode})."], project_mode
+        notes = [f"Core context call failed (exit {result.returncode})."]
+        return DIRECT, None, notes, project_mode, meta
     state = OPTIMIZED
     if package.get("mode") != "graph" or not project_mode:
         state = DEGRADED
     notes += [str(w) for w in package.get("warnings", [])]
-    return state, package, notes, project_mode
+    return state, package, notes, project_mode, meta
+
+
+def _lock_project_type(root: Path) -> dict[str, Any]:
+    try:
+        selection = json.loads((root / ".ai" / "kit.lock.json").read_text(encoding="utf-8"))
+        selection = selection["selection"]
+        return {
+            "profile": str(selection["profile"]),
+            "technology": str(selection["technology"]),
+            "source": "kit project",
+            "reasons": ["recorded in .ai/kit.lock.json"],
+        }
+    except (OSError, ValueError, KeyError, TypeError):
+        return {
+            "profile": "unknown",
+            "technology": "unknown",
+            "source": "kit project",
+            "reasons": ["lock file unreadable"],
+        }
+
+
+def _detected_project_type(det: Detection) -> dict[str, Any]:
+    sel = kit_selection(det)
+    return {
+        "profile": sel["profile"],
+        "technology": sel["technology"],
+        "source": "detection",
+        "confidence": sel["confidence"],
+        "reasons": sel["reasons"],
+    }
+
+
+def _simulated_project_type(
+    task: str, det: Detection, info: CoreInfo, overrides: dict[str, str]
+) -> dict[str, Any]:
+    """Project type for a project without the Kit: override, detection, or the request."""
+    if overrides.get("profile"):
+        return {
+            "profile": overrides["profile"],
+            "technology": overrides.get("technology") or "custom",
+            "source": "user override",
+            "reasons": ["--profile given explicitly"],
+        }
+    detected = _detected_project_type(det)
+    if det.mode != "new" and detected["profile"] != "custom":
+        return detected
+    inferred = _infer_from_request(task, info)
+    return inferred or detected
+
+
+def _infer_from_request(task: str, info: CoreInfo) -> dict[str, Any] | None:
+    """Classify the request with the core, then map it to a Kit profile (see scope.py)."""
+    argv = ["context", "--profile", "custom", "--technology", "custom", "--task", task, "--json"]
+    try:
+        result = run_core(info.command, argv)
+        package = json.loads(result.stdout)
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return None
+    if result.returncode != 0 or not isinstance(package, dict):
+        return None
+    details = package.get("classification_details")
+    return infer_project(task, details if isinstance(details, dict) else {})
 
 
 def cmd_context(args: argparse.Namespace) -> int:
     task = clean_task(args.task)
     root = _root(args.path)
     info = core_info()
-    state, package, notes, project_mode = route(task, root, info)
+    state, package, notes, project_mode, meta = route(task, root, info, overrides=_overrides(args))
     risk = assess(task)
     if risk.blocked:
         state, package = BLOCKED, None
@@ -152,7 +241,7 @@ def cmd_context(args: argparse.Namespace) -> int:
         if mat.state == BLOCKED:
             state = BLOCKED
         notes += mat.notes
-    data = _context_data(task, state, package, mat, notes, risk.to_dict(), args.focus)
+    data = _context_data(task, state, package, mat, notes, risk.to_dict(), args.focus, meta)
     if args.json:
         _print(data, True, "")
     else:
@@ -160,7 +249,11 @@ def cmd_context(args: argparse.Namespace) -> int:
     return 1 if state == BLOCKED else 0
 
 
-def _context_data(task, state, package, mat, notes, risk, focus) -> dict[str, Any]:
+def _overrides(args: argparse.Namespace) -> dict[str, str]:
+    return {k: v for k, v in (("profile", args.profile), ("technology", args.technology)) if v}
+
+
+def _context_data(task, state, package, mat, notes, risk, focus, meta) -> dict[str, Any]:
     metrics = dict((package or {}).get("metrics", {}))
     if mat is not None:
         metrics.update(
@@ -183,6 +276,9 @@ def _context_data(task, state, package, mat, notes, risk, focus) -> dict[str, An
         "selected": (package or {}).get("selected", []),
         "skipped": (package or {}).get("skipped", []),
         "metrics": metrics,
+        "project_type": meta.get("project_type"),
+        "scope": meta.get("scope"),
+        "git": meta.get("git"),
         "notes": notes,
         "guidance": DIRECT_GUIDANCE if state == DIRECT else None,
     }
@@ -196,6 +292,19 @@ def _context_text(data: dict[str, Any], mat) -> str:
         f"classification: {', '.join(data['classification']) or '-'}",
         f"specialists: {', '.join(data['specialists']) or '-'}",
     ]
+    project_type, scope = data.get("project_type") or {}, data.get("scope") or {}
+    if project_type:
+        head.append(
+            f"project type: {project_type.get('profile')}/{project_type.get('technology')} "
+            f"(from {project_type.get('source')})"
+        )
+    if scope:
+        head.append(
+            f"database: {scope['database']} ({scope['database_reason']}); deployment: "
+            f"{'in scope' if scope['deployment_in_scope'] else 'not in scope'} "
+            f"({scope['deployment_reason']})"
+        )
+        head += [f"question for the user: {q}" for q in scope.get("questions", [])]
     if m.get("emitted_estimated_tokens") is not None:
         head.append(
             f"emitted ~{m['emitted_estimated_tokens']:,} tokens (estimate) from "
@@ -229,10 +338,14 @@ def cmd_plan(args: argparse.Namespace) -> int:
     det = detect(root)
     risk = assess(task, args.change or [])
     info = core_info()
-    state, package, notes, _ = (
-        route(task, root, info) if not risk.blocked else (BLOCKED, None, [], False)
-    )
-    plan = build_plan(task, root, det, risk, package, state, args.change or [])
+    notes: list[str] = []
+    package: dict[str, Any] | None = None
+    if risk.blocked:
+        state = BLOCKED
+        meta = {"scope": assess_scope(task).to_dict(), "git": det.git, "project_type": None}
+    else:
+        state, package, notes, _, meta = route(task, root, info, det, _overrides(args))
+    plan = build_plan(task, root, det, risk, package, state, args.change or [], meta)
     plan["notes"] = notes
     _print(plan, args.json, render_plan(plan) + "".join(f"\nnote: {n}" for n in notes))
     return 1 if risk.blocked else 0
@@ -257,6 +370,8 @@ def build_parser() -> argparse.ArgumentParser:
         help="omit AGENTS.md and the Kit master agent (the NETSF skill orchestrates)",
     )
     ctx.add_argument("--json", action="store_true")
+    ctx.add_argument("--profile", help="advanced: Kit profile instead of the inferred one")
+    ctx.add_argument("--technology", help="advanced: Kit technology (with --profile)")
     rsk = sub.add_parser("risk", help="risk level and approval requirement")
     rsk.add_argument("--task", required=True)
     rsk.add_argument("--files", nargs="*")
@@ -266,6 +381,8 @@ def build_parser() -> argparse.ArgumentParser:
     pln.add_argument("--path", default=".")
     pln.add_argument("--change", nargs="*", help="files expected to change (impact analysis)")
     pln.add_argument("--json", action="store_true")
+    pln.add_argument("--profile", help="advanced: Kit profile instead of the inferred one")
+    pln.add_argument("--technology", help="advanced: Kit technology (with --profile)")
     return parser
 
 

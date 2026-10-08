@@ -1,6 +1,11 @@
 # Architecture — {{ project_name }}
 
 > Project-owned. Keep diagrams in sync with the code (see `.ai/agents/11-documentation.md`).
+>
+> Scope: database **{{ database_title }}**; deployment **{{ deployment_title }}**.
+> Elements marked *(if deployed)* and the Deployment section apply only when deployment is
+> in scope. Persistence is added only when the requirements need it and the database has
+> been chosen. Remove what does not apply.
 
 ## Overview
 
@@ -12,7 +17,7 @@ Dependencies point inwards: the domain knows nothing about HTTP, the database or
 
 ```mermaid
 flowchart LR
-    client([API clients]) -->|HTTPS| proxy[NGINX]
+    client([API clients]) -->|HTTPS| proxy[NGINX<br/>(if deployed)]
     proxy --> api[{{ project_name }} API]
     api --> db[("{{ database_title }}")]
     api --> ext[External services]
@@ -60,7 +65,7 @@ sequenceDiagram
     R-->>C: HTTP response (or RFC 9457 problem details)
 ```
 
-## Deployment
+## Deployment (if deployed)
 
 ```mermaid
 flowchart LR

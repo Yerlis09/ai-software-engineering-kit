@@ -3,6 +3,7 @@
   "sqlserver":  { "title": "SQL Server", "stacks": ["sqlserver"] },
   "clickhouse": { "title": "ClickHouse", "stacks": ["clickhouse"] },
   "mongodb":    { "title": "MongoDB",    "stacks": ["mongodb"] },
+  "undecided":  { "title": "Not decided - ask before adding persistence (organization default: ClickHouse)", "stacks": [] },
   "none":       { "title": "None",       "stacks": [] },
   "custom":     { "title": "Custom (describe it in .ai/context/project.md)", "stacks": [] }
 }

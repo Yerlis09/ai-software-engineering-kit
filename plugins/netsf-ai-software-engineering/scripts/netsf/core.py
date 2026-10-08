@@ -38,8 +38,8 @@ OPTIMIZED, DEGRADED, DIRECT, BLOCKED = "OPTIMIZED", "DEGRADED", "DIRECT", "BLOCK
 
 INSTALL_HINT = (
     f"Install the AI Software Engineering Kit core (one time, version {CORE_RANGE}):\n"
-    '  pipx install "git+<KIT_REPOSITORY_URL>@v1.2.0"\n'
-    '  (or: uv tool install "git+<KIT_REPOSITORY_URL>@v1.2.0")\n'
+    '  pipx install "git+<KIT_REPOSITORY_URL>@v1.3.0"\n'
+    '  (or: uv tool install "git+<KIT_REPOSITORY_URL>@v1.3.0")\n'
     "then reopen Claude Code. Ask your team for <KIT_REPOSITORY_URL> (git.netsf.fr)."
 )
 

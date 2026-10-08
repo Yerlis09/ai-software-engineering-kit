@@ -4,23 +4,24 @@
 
 | Layer | Owns | Does not own |
 |---|---|---|
-| **Core** — AI Software Engineering Kit `ai-project` 1.2.x | Engineering knowledge (agents, rules, workflows, stacks), knowledge graph, task classification, ranking, budget, rule slicing, `init`/`doctor`/`update`, lock file | Claude Code integration |
-| **Plugin** — `netsf-ai-software-engineering` 1.0.0 | Claude Code skills and agents, project detection, risk assessment, dry-run plans, impact analysis, materialisation of the core's selection, trust labelling, safety hook | Engineering knowledge (never copied), the context algorithms |
+| **Core** — AI Software Engineering Kit `ai-project` 1.3.x | Engineering knowledge (agents, rules, workflows, stacks), knowledge graph, task classification, ranking, budget, rule slicing, `init`/`doctor`/`update`, lock file | Claude Code integration |
+| **Plugin** — `netsf-ai-software-engineering` 1.1.0 | Claude Code skills and agents, project detection, project type from the request, scope signals (database, deployment), Git context, risk assessment, dry-run plans, impact analysis, materialisation of the core's selection, trust labelling, safety hook, user-requested execution restrictions | Engineering knowledge (never copied), the context algorithms |
 
-The plugin uses only the core's public CLI (`ai-project version`, `ai-project context --json`).
-No core API change was required, so the core stays at 1.2.0.
+The plugin uses only the core's public CLI (`ai-project version`, `ai-project context --json`,
+including `--deployment` for simulated projects, available from core 1.3).
 
 ## Components
 
 ```
-.claude-plugin/plugin.json      manifest (metadata.coreCompatibility = ">=1.2.0,<1.3.0")
+.claude-plugin/plugin.json      manifest (metadata.coreCompatibility = ">=1.3.0,<1.4.0")
 skills/netsf-ai-engineer/       master orchestrator (model-invoked)
 skills/plan|context|setup/      user-invoked commands (disable-model-invocation)
 agents/*.md                     13 thin specialist adapters
-hooks/hooks.json                PreToolUse safety guard
+hooks/hooks.json                PreToolUse safety guard + UserPromptSubmit restrictions
 scripts/netsf_bridge.py         bridge CLI entry point
 scripts/netsf_guard.py          hook entry point (fail-safe)
-scripts/netsf/                  bridge, core, detect, risk, plan, guard, safety (stdlib only)
+scripts/netsf/                  bridge, core, detect, scope, risk, plan, guard, readonly, safety
+                                (stdlib only)
 benchmarks/                     reproducible context benchmark
 tests/                          pytest suite
 ```
@@ -58,9 +59,23 @@ The core returns paths and H2 line ranges. The bridge reads them (bounded, path-
   Wrapped in `UNTRUSTED PROJECT DATA` markers and scanned for prompt-injection patterns.
 
 `--lean` omits `AGENTS.md` and `00-master.md` because the master skill already plays that role
-(measured: 13,106 → 9,420 estimated tokens on the Kit demo task).
+(measured: 13,269 → 9,569 estimated tokens on the Kit demo task).
 
 ## Why plugin-side detection, risk and plan
 
-They are Claude Code concerns today and adding them to the core would have required a minor core
-release (1.3.0), which was out of scope. They are candidates for a future core release.
+They are Claude Code concerns today (the roadmap places project understanding and planning in
+later core releases), so they live in the plugin: `detect.py`, `scope.py`, `risk.py`, `plan.py`.
+Project-type inference reuses the core's task classification instead of re-implementing it.
+
+## Execution restrictions
+
+`readonly.py` turns the user's own words into per-session prohibitions (`modify`, `install`,
+`git-init`, `commit`, `push`, `deploy`), stored in `$CLAUDE_PLUGIN_DATA/readonly/<session>.json`:
+
+```
+UserPromptSubmit  "dry run" / "solo análisis" / "do not push"  →  prohibitions saved (sticky)
+PreToolUse        Write/Edit or a non-allow-listed command      →  deny + how to lift it
+UserPromptSubmit  "exit dry-run" / "ya puedes modificar"        →  prohibitions cleared
+```
+
+Claude Code plan mode (`permission_mode: plan`) counts as full read-only.

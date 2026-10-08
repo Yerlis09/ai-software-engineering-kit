@@ -1,5 +1,6 @@
 {
   "kubernetes": { "title": "Docker + Kubernetes (RKE Staging and Prod) - team standard", "stacks": ["docker", "kubernetes", "ci-cd", "linux"] },
   "docker":     { "title": "Docker only (single host / compose)",                       "stacks": ["docker", "ci-cd", "linux"] },
+  "undecided":  { "title": "Not in scope yet - no Docker, Kubernetes, NGINX or CI until deployment is requested", "stacks": [] },
   "none":       { "title": "Not deployed (library, local tool)",                         "stacks": ["ci-cd"] }
 }

@@ -5,8 +5,8 @@ This guide takes you from nothing to an AI-ready project in about ten minutes.
 ## 1. Install the CLI
 
 ```bash
-pipx install "git+https://git.netsf.fr/<group>/ai-software-engineering-kit.git@v1.2.0"
-# or: pip install "git+https://git.netsf.fr/<group>/ai-software-engineering-kit.git@v1.2.0"
+pipx install "git+https://git.netsf.fr/<group>/ai-software-engineering-kit.git@v1.3.0"
+# or: pip install "git+https://git.netsf.fr/<group>/ai-software-engineering-kit.git@v1.3.0"
 ai-project version
 ```
 
@@ -36,14 +36,17 @@ Technology:
   1. Python (scripts, automation) (default)
   2. Python + FastAPI
   ...
-Database:          (PostgreSQL, SQL Server, ClickHouse, MongoDB, None, Custom)
-Deployment:        (Docker + Kubernetes RKE Staging/Prod is the default)
+Database:          (PostgreSQL, SQL Server, ClickHouse, MongoDB, Not decided, None, Custom)
+Deployment:        (Docker + Kubernetes RKE, Docker only, Not in scope yet, Not deployed)
 AI assistants:     (Claude Code, Copilot, Cursor, Codex; Enter keeps all)
 Business objective (one sentence):
 Describe the project in more detail now? [y/N]
 ```
 
-Press Enter to accept the defaults. A summary is shown before anything is written.
+Press Enter to accept the defaults. A summary is shown before anything is written. By default
+the database and the deployment stay *not decided*: the assistant asks which database to use
+when the requirements need persistence, and adds Docker/Kubernetes/CI only when deployment is
+requested.
 
 **Without prompts** (scripts, CI):
 

@@ -185,7 +185,7 @@ def test_tiers_defaults_and_overrides() -> None:
     template = (kit_root() / "templates/base/.ai/context/budget.json").read_text("utf-8")
     assert parse_tiers(template) == DEFAULT_TIERS
     assert parse_tiers('{"budgets": {"simple": 9000}}')["simple"] == 9000
-    # v1.1 file (no tiers): its single budget applies to every tier, as in v1.1
+    # Single-budget file (no tiers): its one budget applies to every tier
     assert parse_tiers('{"default_token_budget": 15000}') == dict.fromkeys(DEFAULT_TIERS, 15000)
     assert parse_tiers('{"default_token_budget": 15000, "budgets": {}}') == DEFAULT_TIERS
     assert parse_budget('{"budgets": {"security": 30000}}') == DEFAULT_BUDGET
@@ -244,7 +244,7 @@ def test_slicer_is_deterministic() -> None:
     assert a.selected == b.selected and a.dropped == b.dropped
 
 
-# Router integration: graph mode vs direct (v1.1) mode ------------------------------------------
+# Router integration: graph mode vs direct mode --------------------------------------------------
 from ai_project import __version__  # noqa: E402
 from ai_project.catalog import Selection  # noqa: E402
 from ai_project.context_budget import DEFAULT_BUDGET as BUDGET  # noqa: E402
@@ -335,7 +335,7 @@ def test_case_4_python_refactor_fastapi_is_only_recommended() -> None:
     assert {"05-quality", "02-backend", "10-testing"} <= _ids(pkg, "agent")
     assert _relevance(pkg, "stack", "python") == REQUIRED
     assert pkg.stack_ranks["fastapi"][0] == RECOMMENDED  # not REQUIRED: only the project uses it
-    assert _route(*CASES["python_refactor"], graph_mode=False).by_kind("stack")  # v1.1 still works
+    assert _route(*CASES["python_refactor"], graph_mode=False).by_kind("stack")  # direct mode works
 
 
 def test_case_5_kubernetes_deploy_reduces_context() -> None:

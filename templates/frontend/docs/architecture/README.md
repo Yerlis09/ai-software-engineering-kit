@@ -1,6 +1,11 @@
 # Architecture — {{ project_name }}
 
 > Project-owned. Keep diagrams in sync with the code (see `.ai/agents/11-documentation.md`).
+>
+> Scope: database **{{ database_title }}**; deployment **{{ deployment_title }}**.
+> Elements marked *(if deployed)* and the Deployment section apply only when deployment is
+> in scope. Persistence is added only when the requirements need it and the database has
+> been chosen. Remove what does not apply.
 
 ## Overview
 
@@ -10,7 +15,7 @@
 
 ```mermaid
 flowchart LR
-    browser([Browser]) -->|HTTPS| nginx[NGINX<br/>static files + CSP headers]
+    browser([Browser]) -->|HTTPS| nginx[NGINX<br/>(if deployed)<br/>static files + CSP headers]
     browser -->|HTTPS / JSON| api[Backend API]
     browser --> idp[Identity provider]
 ```
@@ -42,7 +47,7 @@ sequenceDiagram
     F-->>U: data, empty state or error message
 ```
 
-## Deployment
+## Deployment (if deployed)
 
 Static assets built in CI, packaged into an NGINX image and deployed to RKE Staging, then
 the same image is promoted to RKE Prod.

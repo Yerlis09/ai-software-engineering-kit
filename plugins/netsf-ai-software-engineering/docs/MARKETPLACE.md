@@ -9,7 +9,7 @@
 ```
 
 `marketplace.json` lists the plugin with `source: "./plugins/netsf-ai-software-engineering"`,
-`version: "1.0.0"`, category `development`. The plugin must therefore not reference files outside
+`version: "1.1.0"`, category `development`. The plugin must therefore not reference files outside
 its own directory (the Kit knowledge is reached through the installed core, not by path).
 
 ## Publishing checklist

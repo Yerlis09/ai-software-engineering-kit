@@ -2,7 +2,7 @@
 
 | Plugin | Core (`ai-project`) | Python | Claude Code |
 |---|---|---|---|
-| 1.0.0 | `>=1.2.0,<1.3.0` | 3.9 – 3.13 (tested 3.9 and 3.12) | validated with 2.1.292 |
+| 1.1.0 | `>=1.3.0,<1.4.0` | 3.9 – 3.13 (tested 3.9 and 3.12) | validated with 2.1.292 |
 
 The range is declared in `.claude-plugin/plugin.json` (`metadata.coreCompatibility`) and enforced
 at runtime by `scripts/netsf/__init__.py` (`CORE_MIN`, `CORE_MAX`). Outside the range the bridge
@@ -24,5 +24,5 @@ release.
 
 - **Plugin patch** (1.0.x): fixes, guard/risk rule tuning, docs.
 - **Plugin minor** (1.x.0): new skills, agents or bridge commands; same core range.
-- **Core minor** (1.3.0): requires a plugin release that widens or moves the range after tests.
+- **Core minor** (for example 1.4.0): requires a plugin release that widens or moves the range after tests.
 - Platforms: Windows (primary, tested), Linux and macOS (expected; symlink test only runs there).

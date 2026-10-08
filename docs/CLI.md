@@ -21,8 +21,8 @@ Creates a project or adds the kit to an existing one.
 | `--name NAME` | 1-64 chars: letters, digits, `-`, `_`, `.`; starts with a letter; portable on Windows |
 | `--profile P` | `backend-api`, `frontend`, `fullstack`, `python-automation`, `data-engineering`, `microservice`, `custom` |
 | `--technology T` | Must be offered by the profile (`ai-project list technologies`) |
-| `--database D` | `postgresql`, `sqlserver`, `clickhouse`, `mongodb`, `none`, `custom` |
-| `--deployment D` | `kubernetes` (default: Docker + RKE Staging/Prod), `docker`, `none` |
+| `--database D` | `postgresql`, `sqlserver`, `clickhouse`, `mongodb`, `undecided`, `none`, `custom`. Default: `undecided` (the assistant asks before adding persistence; team default ClickHouse is only recommended), `none` for `frontend` |
+| `--deployment D` | `kubernetes` (Docker + RKE Staging/Prod, the team standard when deploying), `docker`, `undecided`, `none`. Default: `undecided` — deployment is out of scope: no Docker/Kubernetes/NGINX/CI guides and no `deploy/` folder until it is chosen |
 | `--assistants A,B` | `claude-code`, `copilot`, `cursor`, `codex` (default: all) |
 | `--stacks S,T` | Extra stack guides (`ai-project list stacks`) |
 | `--description TEXT` | Business objective (one sentence) |
@@ -60,8 +60,8 @@ What is checked:
 | Configuration | `AGENTS.md`, agents (incl. master), rules, workflows, `.ai/context/project.md` (warns on remaining TODOs), context index and budget (WARN if missing or invalid) |
 | Knowledge Graph | graph exists, structure, node and edge types, references, project paths, no cycles, source fingerprint (WARN with recovery instructions, never FAIL) |
 | Kit integrity | Lock file, missing core files, customised core files, newer kit available |
-| Git | Repository (also a parent repo), remote on the team server (git.netsf.fr), `.gitignore` excludes `.env` |
-| Quality | Formatter, linter, type checker, test files, CI pipeline (detected from config files) |
+| Git | Repository (WARN when the project only sits inside a parent directory's repository: confirm it is a monorepo or propose `git init` with approval), remote on the team server (git.netsf.fr; never invented), `.gitignore` excludes `.env` |
+| Quality | Formatter, linter, type checker, test files, CI pipeline (detected from config files; INFO instead of WARN when deployment is not in scope), code comments in English describing current behaviour (heuristic WARN for change-history or non-English comments and docstrings; `ai-kit: allow-comment` marks a deliberate exception) |
 | Security | Secrets in source (**FAIL**), credentials in `.env` files (**WARN + alert banner**), dependency lock files, non-root Dockerfiles |
 | Documentation | README, `docs/architecture/`, Mermaid diagrams, ADRs `docs/adr/NNNN-*.md` |
 | Environment | `.env.example`, local `.env` files present, `.editorconfig` |
@@ -98,6 +98,7 @@ Selects the minimum context for a task and explains every choice. Details:
 | `--profile P` | Simulate a project of this profile instead (nothing written); `--technology`, `--database` refine it |
 | `--json` | Context package for tools and assistants: `selected_agents`, `selected_rules` (with sections), `selected_workflows`, `selected_stacks`, `project_context`, `skipped_context`, `reasons`, `estimated_tokens`, `budget`, `full_context_tokens`, `reduction_percentage` |
 | `--strict` | Exit 1 when the estimate is over budget |
+| `--profile P`, `--technology T`, `--database D`, `--deployment D` | Simulate a project of that profile instead of reading `--path` (nothing is written). `--deployment` defaults to `undecided`, so deployment guides are only considered when a deployment is given |
 | `--rebuild-graph` | Regenerate, validate and save `.ai/context/graph.json` from the kit sources, then print a summary (`graph_rebuild` in JSON). Combine with `--task` to analyse right after |
 
 Since 1.2 the router uses the local knowledge graph (`Routing: knowledge graph: loaded`). If the

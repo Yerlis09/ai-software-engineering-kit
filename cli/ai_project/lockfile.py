@@ -44,7 +44,7 @@ class Lock:
     answers: dict[str, str]
     managed: dict[str, str] = field(default_factory=dict)
     seeds: list[str] = field(default_factory=list)
-    derived: list[str] = field(default_factory=list)  # v1.2: regenerated, never conflicts
+    derived: list[str] = field(default_factory=list)  # regenerated, never conflicts
     created_at: str = field(default_factory=now_iso)
     updated_at: str = field(default_factory=now_iso)
 

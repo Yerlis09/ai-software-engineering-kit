@@ -10,14 +10,19 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import sys
 from contextlib import redirect_stdout
 from pathlib import Path
 
 import pytest
 
-from netsf import bridge
+from netsf import bridge, core
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
+
+# The plugin resolves the core from PATH first (what users install). The tests exercise the core
+# of this repository instead, so a different globally installed version cannot change results.
+core._command = lambda: [sys.executable, "-m", "ai_project"]
 
 
 @pytest.fixture

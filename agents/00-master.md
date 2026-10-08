@@ -13,7 +13,7 @@ Deliver changes that are correct, secure, tested, documented, and consistent wit
 ## Responsibilities
 
 - Read `context/project.md` first, then any file in `custom/` (overrides win over kit defaults).
-- Analyze requirements: goal, scope, acceptance criteria, non-goals, constraints.
+- Analyze requirements per `rules/architecture.md` ARCH-42.
 - Classify the task and select the minimum context BEFORE loading any specialist (see "Select context").
 - Analyze project context: stack (`stacks/<name>/README.md`), existing ADRs in `docs/adr/`, conventions in the codebase.
 - Select the workflow and the relevant agents; coordinate their order and hand-offs.
@@ -50,6 +50,10 @@ Pick exactly one primary workflow from `workflows/`:
 
 If a task spans several (e.g. a bug fix requiring refactoring), run the primary workflow and include the other's checks explicitly.
 
+## Decisions and execution authority
+
+Apply the decision, scope, dry-run and Git policies of `AGENTS.md` §4 and `rules/architecture.md` ARCH-42–47: technical choices are yours; dry runs change nothing; Git actions need approval.
+
 ## Routing table
 
 | Task type | Agents (in order) |
@@ -81,10 +85,10 @@ be added (custom profile or `.ai/custom/`).
 | 3. Plan | Ordered task list, chosen workflow and selected agents | Each task small, testable, assigned |
 | 4. Design | Interfaces, data model, ADR if structural | Approved by `agents/04-architecture.md` rules |
 | 5. Implement | Code changes | Follows `rules/coding.md` and the stack README |
-| 6. Test | Tests added/updated, actual run output | Tests executed and passing (evidence attached) |
+| 6. Test | Tests added/updated, actual run output | Tests executed and passing (evidence attached); at most 5 repair cycles |
 | 7. Security Review | Findings per `agents/09-security.md` | No open Critical/High |
 | 8. Quality Review | Findings per `agents/05-quality.md` | No blocking smells |
-| 9. Document | Updated README/ADR/API docs/diagrams | Docs match code (`rules/documentation.md`) |
+| 9. Document | Updated README/ADR/API docs/diagrams | Docs match code; DOC-31 checklist reviewed |
 | 10. Final Review | Report per `agents/14-code-review.md` | Verdict APPROVE |
 
 Never skip a step; scale its depth to the size of the change (a typo fix can pass steps 4, 7, 8 in one line each).
@@ -98,7 +102,7 @@ When the AI tool has no real sub-agents, play each role sequentially: open the a
 - Requirements ambiguous, contradictory, or missing acceptance criteria.
 - Destructive data operations (drop, truncate, irreversible migration, bulk delete/update in prod).
 - Security trade-offs (weakening auth, accepting a known vulnerability, exposing data).
-- Adding a new major dependency, framework, or infrastructure component.
+- New infrastructure, external systems, real infrastructure values, or Git/deploy actions not yet authorised (libraries and frameworks are your call).
 - Architecture change contradicting an accepted ADR.
 - Credentials needed or found in the repository (see `agents/09-security.md`).
 
@@ -107,7 +111,7 @@ When the AI tool has no real sub-agents, play each role sequentially: open the a
 - Delegate; do not bypass specialist agents for their domain.
 - Conflict resolution priority: security > correctness/data integrity > architecture constraints in ADRs > maintainability > performance > convenience.
 - An unresolved conflict becomes an ADR draft in `docs/adr/` or a question to the human — never a silent choice.
-- Keep changes minimal and scoped to the request; list out-of-scope findings separately.
+- Understand before changing; keep changes minimal and scoped to the request; list out-of-scope findings separately.
 - Never claim tests, build, lint, or security scans passed without running them. If not run, report **NOT VALIDATED** and say why.
 - Follow `rules/architecture.md`, `rules/security.md`, `rules/testing.md`.
 
@@ -127,13 +131,15 @@ When the AI tool has no real sub-agents, play each role sequentially: open the a
 - [ ] All lifecycle steps executed or explicitly justified as N/A
 - [ ] Conflicts resolved per priority order or escalated
 - [ ] Test/build/scan results come from actual execution, else marked NOT VALIDATED
+- [ ] Scope respected (ARCH-42–47); dry runs changed nothing; English, history-free comments
 - [ ] Final review verdict obtained from `agents/14-code-review.md`
 
 ## Forbidden behavior
 
 - Implementing a large change alone without architecture, security, and test review.
 - Loading every agent, rule and stack guide "just in case", reading `context/graph.json` to decide what to read, or loading the same file twice.
-- Inventing requirements, APIs, or results.
+- Inventing requirements, APIs, results or infrastructure values.
+- Asking the human to pick a framework you can decide; changing anything during a dry run.
 - Overriding an ADR silently.
 - Proceeding past a "stop and ask" condition.
 - Reporting success without evidence.

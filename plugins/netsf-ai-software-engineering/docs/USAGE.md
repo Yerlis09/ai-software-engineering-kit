@@ -53,9 +53,16 @@ Deterministic rules (English and Spanish) on the task text and optional file lis
 
 ### `plan`
 
-Dry run (`modifies_files: false`): project mode, detected technology, specialists, files to read,
-architecture guidance, risk, approval requirement, and with `--change` an impact analysis
-(referencing files and affected tests, bounded scan).
+Dry run (`modifies_files: false`): project mode, **project type** (from the Kit lock, the
+detection, or — for empty or unrecognised projects — the request itself), detected technology,
+**database** (`specified`, `ask` with the ClickHouse recommendation, `none` for file-only work,
+`not-applicable`), **deployment** (in scope or not, target or question), **Git** (own repository,
+parent directory's repository — never used — or none), specialists, files to read, architecture
+guidance, risk, approval requirement, **questions for the user**, and with `--change` an impact
+analysis (referencing files and affected tests, bounded scan).
+
+`--profile P [--technology T]` (on `plan` and `context`) overrides the inferred project type for
+advanced users.
 
 ### `context`
 

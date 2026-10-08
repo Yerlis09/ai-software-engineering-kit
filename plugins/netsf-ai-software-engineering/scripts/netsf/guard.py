@@ -3,7 +3,8 @@
 Prompts do the reasoning; this hook enforces a few non-negotiable rules regardless of what the
 model decides. It returns, per the Claude Code hook protocol, one of:
 
-* ``deny`` - never allowed (secret exfiltration);
+* ``deny`` - never allowed (secret exfiltration), or forbidden by an execution restriction the
+  user requested (dry run, "do not modify"; see ``readonly.py``);
 * ``ask``  - the human must confirm (destructive / irreversible / production / secrets);
 * nothing  - normal permission flow continues.
 
@@ -16,6 +17,8 @@ from __future__ import annotations
 import json
 import re
 from typing import Any
+
+from netsf.readonly import restriction
 
 ASK, DENY = "ask", "deny"
 SHELL_TOOLS = {"Bash", "PowerShell"}
@@ -104,6 +107,11 @@ _COMMAND_RULES: list[tuple[str, str, str]] = [
         r"kubectl\s+(create|apply)[^\n]*(rolebinding|clusterrole))",
         "changes access permissions",
     ),
+    # Git history and remotes: commits, pushes, tags and new repositories need authorisation.
+    (ASK, r"\bgit\s+init\b", "initialises a Git repository (check it is not a parent's)"),
+    (ASK, r"\bgit\s+commit\b", "creates a commit (requires the user's authorisation)"),
+    (ASK, r"\bgit\s+push\b", "pushes to a remote (requires the user's authorisation)"),
+    (ASK, r"\bgit\s+tag\s+(?!-l\b|--list\b)[\w.-]", "creates a tag (requires authorisation)"),
     # Secrets access through the shell.
     (
         ASK,
@@ -143,11 +151,10 @@ def hook_output(raw: str) -> str:
     """Full hook behaviour: stdin text -> stdout JSON ('' = no decision). Never raises."""
     try:
         event = json.loads(raw) if raw.strip() else None
-        verdict = (
-            evaluate(event)
-            if isinstance(event, dict)
-            else (ASK, "NETSF guard received no readable input; please confirm")
-        )
+        if isinstance(event, dict):
+            verdict = restriction(event) or evaluate(event)
+        else:
+            verdict = (ASK, "NETSF guard received no readable input; please confirm")
     except Exception:  # fail-safe: never let a guard error silently allow
         verdict = (ASK, "NETSF guard error; please confirm this action")
     if verdict is None:

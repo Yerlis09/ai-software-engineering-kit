@@ -12,7 +12,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from netsf.detect import SKIP_DIRS, Detection, kit_selection
+from netsf.detect import SKIP_DIRS, Detection, git_note, kit_selection
 from netsf.risk import Risk
 from netsf.safety import read_text
 
@@ -145,8 +145,15 @@ def build_plan(
     package: dict[str, Any] | None,
     state: str,
     changed: list[str],
+    meta: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     selection = kit_selection(det)
+    meta = meta or {}
+    scope = meta.get("scope") or {}
+    git = meta.get("git") or det.git
+    questions = list(scope.get("questions", []))
+    if not git.get("own_repository"):
+        questions.append(git_note(git))
     test_fw = det.values("testing", 0.3)
     return {
         "dry_run": True,
@@ -162,6 +169,15 @@ def build_plan(
             "deployment": det.values("deployment", 0.5),
             "profile": selection,
         },
+        "project_type": meta.get("project_type")
+        or {
+            "profile": selection["profile"],
+            "technology": selection["technology"],
+            "source": "detection",
+        },
+        "scope": scope,
+        "git": {**git, "note": git_note(git)},
+        "questions_for_user": questions,
         "specialists": specialists(package),
         "architecture": architecture_guidance(det, task),
         "files_to_read": files_to_read(root, det),
@@ -202,6 +218,10 @@ def render_plan(plan: dict[str, Any]) -> str:
         f"TASK               {plan['task']}",
         f"CLASSIFICATION     {', '.join(plan['classification']) or '-'}",
         f"DETECTED TECH      {', '.join(detected) or 'none detected'}",
+        f"PROJECT TYPE       {_project_type_text(plan['project_type'])}",
+        f"DATABASE           {_database_text(plan['scope'])}",
+        f"DEPLOYMENT         {_deployment_text(plan['scope'])}",
+        f"GIT                {plan['git']['note']}",
         f"SPECIALISTS        {', '.join(plan['specialists']) or 'master only'}",
         f"ARCHITECTURE       {plan['architecture']}",
         f"RISK               {risk['level']}{' (BLOCKED)' if risk['blocked'] else ''}: "
@@ -229,4 +249,31 @@ def render_plan(plan: dict[str, Any]) -> str:
         "ACCEPTANCE CRITERIA",
         *[f"  - {a}" for a in plan["acceptance_criteria"]],
     ]
+    if plan["questions_for_user"]:
+        lines += ["QUESTIONS FOR THE USER", *[f"  - {q}" for q in plan["questions_for_user"]]]
     return "\n".join(lines)
+
+
+def _project_type_text(project_type: dict[str, Any]) -> str:
+    reasons = "; ".join(project_type.get("reasons", []))
+    text = f"{project_type.get('profile')} / {project_type.get('technology')}"
+    return f"{text} (from {project_type.get('source')}{': ' + reasons if reasons else ''})"
+
+
+def _database_text(scope: dict[str, Any]) -> str:
+    if not scope:
+        return "-"
+    labels = {
+        "specified": f"use {scope['database_value']}",
+        "ask": "ASK THE USER",
+        "none": "no database",
+        "not-applicable": "not needed by the request",
+    }
+    return f"{labels.get(scope['database'], scope['database'])} - {scope['database_reason']}"
+
+
+def _deployment_text(scope: dict[str, Any]) -> str:
+    if not scope:
+        return "-"
+    state = "in scope" if scope["deployment_in_scope"] else "not in scope"
+    return f"{state} - {scope['deployment_reason']}"

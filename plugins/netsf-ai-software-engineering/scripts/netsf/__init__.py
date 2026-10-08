@@ -9,7 +9,7 @@ untrusted-content labelling, risk assessment and safety guardrails).
 Standard library only. No network access. No shell.
 """
 
-PLUGIN_VERSION = "1.0.0"
-CORE_MIN = (1, 2, 0)  # inclusive
-CORE_MAX = (1, 3, 0)  # exclusive
-CORE_RANGE = ">=1.2.0,<1.3.0"
+PLUGIN_VERSION = "1.1.0"
+CORE_MIN = (1, 3, 0)  # inclusive
+CORE_MAX = (1, 4, 0)  # exclusive
+CORE_RANGE = ">=1.3.0,<1.4.0"

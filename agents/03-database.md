@@ -6,6 +6,8 @@
 
 Data engineer responsible for schema design, integrity, queries, indexes, transactions, migrations, and data-layer performance.
 
+Scope: add persistence only when the requirements need it. When they do and no database is specified, ask which one to use, recommending the team default (ClickHouse); never choose silently (`rules/architecture.md` ARCH-45).
+
 ## Objective
 
 Keep data correct, consistent, and fast to access at the expected volume, with safe, reversible schema evolution.

@@ -10,9 +10,9 @@ and stacks -> deduplicate -> estimate -> compare with the budget.
 
 Two modes, one router:
 
-* **direct** (v1.1 behaviour): metadata only. Always available; it is the mandatory fallback
+* **direct**: metadata only. Always available; it is the mandatory fallback
   when the knowledge graph is missing, corrupt or cannot be rebuilt.
-* **graph** (v1.2): adds task categories, REQUIRED / RECOMMENDED / OPTIONAL relevance, scores
+* **graph**: adds task categories, REQUIRED / RECOMMENDED / OPTIONAL relevance, scores
   from weighted graph traversal (``context_rank``) and the budget slicer (``context_budget``).
 """
 
@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Any, Mapping, Protocol, TypeVar
 
 from ai_project import __version__
-from ai_project.context_budget import (  # DEFAULT_BUDGET/parse_budget re-exported (v1.1 API)
+from ai_project.context_budget import (  # DEFAULT_BUDGET/parse_budget re-exported for importers
     DEFAULT_BUDGET,  # noqa: F401
     DEFAULT_TIERS,
     OPTIONAL,
@@ -237,7 +237,7 @@ class AgentDecision:
     reasons: list[str] = field(default_factory=list)
     status: str = SKIPPED
     installed: bool = True
-    # v1.2 (graph mode only)
+    # Graph mode only
     required_by_task: list[str] = field(default_factory=list)
     relevance: str = ""
     rank: Score | None = None
@@ -249,7 +249,7 @@ class AgentDecision:
             "level": LEVELS[self.level],
             "layer": self.layer,
             "status": self.status,
-            "score": self.score,  # v1.1: raw trigger score (kept for compatibility)
+            "score": self.score,  # raw trigger score (direct-mode signal)
             "matched": self.matched,
             "reasons": self.reasons,
             "installed": self.installed,
@@ -312,7 +312,7 @@ class ContextPackage:
     budget: dict[str, int]
     full_context_tokens: int
     warnings: list[str] = field(default_factory=list)
-    # v1.2
+    # Routing mode and graph-mode details
     mode: str = "direct"
     classification: Classification | None = None
     tier: str | None = None
@@ -409,7 +409,7 @@ class ContextPackage:
                 "phases": self.phases,
                 "status": self.status,
                 "violations": self.violations,
-                # v1.2
+                # Tier selection
                 "tier": self.tier,
                 "tier_reason": self.tier_reason,
                 "limit": self.limit,
@@ -418,7 +418,7 @@ class ContextPackage:
             "full_context_tokens": self.full_context_tokens,
             "reduction_percentage": self.reduction_percentage,
             "warnings": self.warnings,
-            # v1.2 additions (all v1.1 keys above are unchanged)
+            # Graph-mode details
             "mode": self.mode,
             "graph": self.graph_info,
             "estimation_method": "characters_div_4",
@@ -515,7 +515,7 @@ class Router:
         self.meta = meta
         self.source = source
         self.budget = budget
-        self.graph = graph  # None -> direct (v1.1) mode
+        self.graph = graph  # None -> direct mode
         self.tiers = dict(tiers or DEFAULT_TIERS)
         self.selection = dict(selection or {})
         self.ranking = RankingConfig.from_meta(meta)

@@ -61,7 +61,7 @@ def test_interactive_wizard(tmp_path: Path, monkeypatch) -> None:
         "4",  # Python Automation
         "1",  # Python (scripts, automation)
         "3",  # ClickHouse
-        "",  # deployment: default (kubernetes)
+        "",  # deployment: default (undecided: not in scope yet)
         "1,2",  # assistants: claude-code, copilot
         "Automate weekly reporting.",
         "y",  # detailed questions
@@ -86,13 +86,17 @@ def test_interactive_wizard(tmp_path: Path, monkeypatch) -> None:
         "profile": "python-automation",
         "technology": "python",
         "database": "clickhouse",
-        "deployment": "kubernetes",
+        "deployment": "undecided",
         "assistants": ["claude-code", "copilot"],
         "extra_stacks": [],
     }
     context = (root / ".ai/context/project.md").read_text("utf-8")
     assert "Manual reports take 2 days" in context and "Finance team" in context
     assert (root / ".ai/stacks/clickhouse/README.md").is_file()
+    # Deployment not in scope: no deployment guides and no deploy/ folder.
+    assert not (root / ".ai/stacks/docker").exists()
+    assert not (root / ".ai/stacks/kubernetes").exists()
+    assert not (root / "deploy").exists()
 
 
 def test_interactive_decline_writes_nothing(tmp_path: Path, monkeypatch) -> None:
@@ -175,4 +179,4 @@ def test_custom_technology_with_extra_stacks(init_project) -> None:
     )
     assert (root / ".ai/stacks/react/README.md").is_file()
     assert (root / ".ai/stacks/nginx/README.md").is_file()
-    assert len(list((root / ".ai/agents").glob("*.md"))) == 16  # 15 specialists + router (v1.1)
+    assert len(list((root / ".ai/agents").glob("*.md"))) == 16  # 15 specialists + context optimiser

@@ -25,17 +25,17 @@ TASK = "Create a FastAPI endpoint to retrieve cells"
 
 
 def test_version_parsing_and_range() -> None:
-    assert parse_version("ai-project 1.2.0\nKit: x") == (1, 2, 0)
+    assert parse_version("ai-project 1.3.0\nKit: x") == (1, 3, 0)
     assert parse_version("garbage") is None
-    assert is_compatible((1, 2, 0)) and is_compatible((1, 2, 9))
-    assert not is_compatible((1, 1, 9)) and not is_compatible((1, 3, 0))
+    assert is_compatible((1, 3, 0)) and is_compatible((1, 3, 9))
+    assert not is_compatible((1, 2, 9)) and not is_compatible((1, 4, 0))
     assert not is_compatible((2, 0, 0))
 
 
 def test_real_core_is_detected_as_compatible() -> None:
     code, data = bridge_json("check")
     assert code == 0 and data["core"]["status"] == "OK"
-    assert data["core"]["version"].startswith("1.2.")
+    assert data["core"]["version"].startswith("1.3.")
 
 
 def test_missing_core_gives_install_instructions(monkeypatch) -> None:
@@ -46,11 +46,11 @@ def test_missing_core_gives_install_instructions(monkeypatch) -> None:
 
 
 def test_incompatible_core_is_reported(monkeypatch) -> None:
-    fake = subprocess.CompletedProcess([], 0, stdout="ai-project 1.3.0\nKit: C:/kit\n", stderr="")
+    fake = subprocess.CompletedProcess([], 0, stdout="ai-project 1.2.0\nKit: C:/kit\n", stderr="")
     monkeypatch.setattr(core, "_command", lambda: ["ai-project"])
     monkeypatch.setattr(core, "run_core", lambda *_a, **_k: fake)
     info = core.core_info()
-    assert info.status == "INCOMPATIBLE" and ">=1.2.0,<1.3.0" in info.message
+    assert info.status == "INCOMPATIBLE" and ">=1.3.0,<1.4.0" in info.message
 
 
 def test_kit_project_is_optimized_and_materialized(kit_project: Path) -> None:

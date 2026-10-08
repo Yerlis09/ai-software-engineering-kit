@@ -46,6 +46,7 @@ class ContextOptions:
     profile: str | None = None
     technology: str | None = None
     database: str | None = None
+    deployment: str | None = None
     as_json: bool = False
     strict: bool = False
     rebuild_graph: bool = False
@@ -100,7 +101,7 @@ def _simulated_source(opts: ContextOptions, catalog: Catalog) -> _Resolved:
         profile.name,
         opts.technology or profile.technologies[0],
         opts.database or default_database(profile.name),
-        DEFAULT_DEPLOYMENT,
+        opts.deployment or DEFAULT_DEPLOYMENT,
         tuple(catalog.assistants),
     )
     plan = build_plan(
@@ -109,7 +110,8 @@ def _simulated_source(opts: ContextOptions, catalog: Catalog) -> _Resolved:
     files = {p.path: p.content for p in plan}
     hashes = {p.path: content_hash(p.content) for p in plan if p.managed}
     note = (
-        f"Simulated {profile.name} project ({selection.technology}, {selection.database}); "
+        f"Simulated {profile.name} project ({selection.technology}, {selection.database}, "
+        f"deployment {selection.deployment}); "
         "nothing was written"
     )
     resolved = _Resolved(
@@ -123,7 +125,7 @@ def _simulated_source(opts: ContextOptions, catalog: Catalog) -> _Resolved:
             graph_sources(catalog, selection.to_dict(), SIMULATED_NAME, files, hashes, __version__)
         )
         resolved.graph_info = _info(resolved.graph, "simulated (built in memory)")
-    except KitError as exc:  # fallback: direct (v1.1) routing
+    except KitError as exc:  # fallback: direct routing
         resolved.warnings.append(f"Knowledge graph unavailable ({exc}); direct routing used")
         resolved.graph_info = {"status": "unavailable", "issue": str(exc)}
     return resolved
@@ -179,7 +181,7 @@ def _attach_graph(
     rebuild: bool,
 ) -> None:
     """Load the saved graph; if missing/invalid/stale, rebuild it in memory (or on disk with
-    --rebuild-graph); if that fails too, fall back to direct (v1.1) routing."""
+    --rebuild-graph); if that fails too, fall back to direct routing."""
     if lock is None:
         resolved.warnings.append("No lock file: knowledge graph not available; direct routing used")
         resolved.graph_info = {"status": "unavailable", "issue": "no lock file"}
@@ -293,7 +295,7 @@ def print_package(package: ContextPackage, console: Console) -> None:
     profile = f"  (profile {package.profile})" if package.profile else ""
     console.print(f"Project: {package.project or '-'}{profile}")
     graph = package.graph_info
-    mode = "knowledge graph" if package.mode == "graph" else "direct (v1.1 fallback)"
+    mode = "knowledge graph" if package.mode == "graph" else "direct (fallback)"
     detail = f": {graph.get('status')}" if graph.get("status") else ""
     if graph.get("nodes"):
         detail += f", {graph['nodes']} nodes, {graph['edges']} edges"

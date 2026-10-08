@@ -43,6 +43,14 @@ REACT = "Improve React dashboard performance."
 
 
 def package(task: str, profile: str = "backend-api", **kw) -> ContextPackage:
+    """Route a task for a simulated project with an explicit database and Kubernetes deployment.
+
+    The kit records database and deployment as undecided when they are not chosen; these routing
+    scenarios describe a deployed project with a database, so they state both explicitly.
+    """
+    no_database = profile in ("frontend", "python-automation")
+    kw.setdefault("database", "none" if no_database else "postgresql")
+    kw.setdefault("deployment", "kubernetes")
     return build_package(ContextOptions(task=task, profile=profile, **kw), Catalog(kit_root()))
 
 
@@ -106,7 +114,7 @@ def test_agent_selection_matches_the_three_reference_cases() -> None:
 
 
 def direct_package(task: str, profile: str = "backend-api") -> ContextPackage:
-    """v1.1 routing (direct mode, the mandatory fallback when no graph is available)."""
+    """Direct-mode routing: the mandatory fallback when no graph is available."""
     files = _files_for(profile)
     return Router(
         Catalog(kit_root()).routing, PlanSource(files, "p", profile), dict(DEFAULT_BUDGET)
@@ -114,10 +122,10 @@ def direct_package(task: str, profile: str = "backend-api") -> ContextPackage:
 
 
 def test_rule_selection_and_targeted_security_review() -> None:
-    # Direct mode (v1.1 behaviour, kept as fallback): unchanged.
+    # Direct mode: metadata-only selection.
     assert ids(direct_package(HEALTH), "rule") == {"coding", "architecture", "testing"}
-    # v1.2 INTENTIONAL CHANGE (graph mode): the 'api' task category recommends security, so an
-    # API task also gets the targeted security rule sections (sliced), never the whole agent.
+    # Graph mode: the 'api' task category recommends security, so an API task also gets the
+    # targeted security rule sections (sliced), never the whole agent.
     graph_rules = {i.id: i for i in package(HEALTH).by_kind("rule")}
     assert set(graph_rules) == {"coding", "architecture", "testing", "security"}
     assert graph_rules["security"].requested_by == ["task.api"]
@@ -471,16 +479,15 @@ def test_v100_project_works_and_updates(init_project) -> None:
     assert (root / ".ai/context/budget.json").is_file()
     assert (root / ".ai/context/project.md").read_text("utf-8") == custom_context  # untouched
     lock = json.loads((root / ".ai/kit.lock.json").read_text("utf-8"))
-    # v1.2 (decision C): the index is now a derived artefact, not a CORE file
+    # The index is a derived artefact, not a CORE file
     assert ".ai/context/index.json" in lock["derived_files"]
     assert ".ai/context/index.json" not in lock["managed_files"]
     assert run("update", "--path", str(root), "--check").code == 0
 
 
 def test_customised_index_is_regenerated_as_a_derived_artefact(init_project, kit_copy, set_version):
-    # v1.2 INTENTIONAL CHANGE (approved decision C): was
-    # test_customised_index_follows_kit_new_conflict_rules. index.json is derived (not a source
-    # of truth): update regenerates it, local edits are replaced, no .kit-new conflict.
+    # index.json is derived (not a source of truth): update regenerates it, local edits are
+    # replaced, no .kit-new conflict.
     root = init_project("idx-app")
     index = root / ".ai/context/index.json"
     index.write_text(index.read_text("utf-8").replace('"usage"', '"usage_local"'), "utf-8")
@@ -520,8 +527,7 @@ def test_project_source_refuses_paths_outside_context(init_project) -> None:
 
 
 def test_router_agent_is_loaded_only_for_context_optimisation_tasks() -> None:
-    # v1.2 INTENTIONAL CHANGE (approved decision D): was test_router_is_never_auto_loaded. The
-    # protection for normal tasks is kept; context-optimisation tasks now load the specialist.
+    # Normal tasks never load the context optimiser; context-optimisation tasks do.
     for task in (HEALTH, SQLI, "Add customer creation endpoint", "Refactor the token parser"):
         assert "15-context-token-optimizer" not in {i.id for i in package(task).by_kind("agent")}
         assert "15-context-token-optimizer" not in {

@@ -7,14 +7,16 @@ from datetime import date
 from pathlib import Path
 
 from ai_project import __version__
-from ai_project.catalog import Catalog, Selection
+from ai_project.catalog import UNDECIDED, Catalog, Selection
 from ai_project.console import INFO, PASS, WARN, Console, Prompter
 from ai_project.errors import EXIT_OK, EXIT_USAGE, KitError
 from ai_project.generator import apply_plan, build_plan
 from ai_project.lockfile import LOCK_PATH, Lock, content_hash, write_lock
 from ai_project.paths import clean_text, safe_join, validate_project_name
 
-DEFAULT_DEPLOYMENT = "kubernetes"
+# Deployment and database are decisions, not defaults: until they are chosen the project
+# records them as undecided and the assistant asks before introducing either.
+DEFAULT_DEPLOYMENT = UNDECIDED
 
 QUESTIONS = {
     "problem": "Problem solved (for whom, why now)",
@@ -46,7 +48,8 @@ class InitOptions:
 
 
 def default_database(profile: str) -> str:
-    return "none" if profile in ("frontend", "python-automation") else "postgresql"
+    """Database recorded when none is chosen: a frontend has none, others are undecided."""
+    return "none" if profile == "frontend" else UNDECIDED
 
 
 def run_init(opts: InitOptions, catalog: Catalog, console: Console, prompter: Prompter) -> int:

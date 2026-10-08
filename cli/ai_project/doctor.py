@@ -14,6 +14,8 @@ from pathlib import Path
 from typing import Any, Callable, Mapping
 
 from ai_project import __version__
+from ai_project.catalog import deployment_in_scope
+from ai_project.code_hygiene import scan_comments
 from ai_project.console import FAIL, INFO, PASS, WARN, Console
 from ai_project.context_graph import GRAPH_PATH, check_project_graph
 from ai_project.context_index import BUDGET_PATH, INDEX_PATH, read_index
@@ -147,6 +149,7 @@ def run_doctor(
         _kit_integrity,
         lambda p: _git(p, org.get("git_server", "")),
         _quality,
+        _code_comments,
         _security_config,
         _documentation,
         _environment,
@@ -383,12 +386,25 @@ def _git(project: _Project, git_server: str) -> list[Check]:
                 "Repository",
                 WARN,
                 "not a Git repository",
-                f"git init, then push to {git_server or 'the team Git server'}.",
+                "Propose 'git init' in this directory and run it only with approval; the team "
+                f"provides the repository URL on {git_server or 'the Git server'} "
+                "(never invent it).",
             )
         )
     else:
-        where = "" if git_dir.parent == project.root else f"inside {git_dir.parent}"
-        checks.append(Check(cat, "Repository", PASS, where))
+        if git_dir.parent == project.root:
+            checks.append(Check(cat, "Repository", PASS))
+        else:
+            checks.append(
+                Check(
+                    cat,
+                    "Repository",
+                    WARN,
+                    f"no repository of its own: inside the parent repository {git_dir.parent}",
+                    "Confirm the parent repository is this project's (monorepo); otherwise "
+                    "propose 'git init' here and wait for approval. Never commit to it by default.",
+                )
+            )
         remotes = _git_remotes(git_dir / "config") if git_dir.is_dir() else []
         if not remotes:
             checks.append(
@@ -397,7 +413,8 @@ def _git(project: _Project, git_server: str) -> list[Check]:
                     "Remote",
                     WARN,
                     "no remote configured",
-                    f"git remote add origin <https://{git_server}/...>",
+                    f"Ask the team for the repository URL on {git_server or 'the Git server'} and "
+                    "add it with approval; never invent a remote.",
                 )
             )
         elif git_server and not any(git_server in url for url in remotes):
@@ -526,9 +543,50 @@ def _quality(project: _Project) -> list[Check]:
             "Add a pipeline that runs lint, tests and 'ai-project doctor'.",
         ),
     ]
+    checks = []
+    deployed = _deployment_in_scope(project)
+    for name, detect, hint in detections:
+        if detect():
+            checks.append(Check(cat, name, PASS))
+        elif name == "CI pipeline" and not deployed:
+            checks.append(Check(cat, name, INFO, "not configured (deployment not in scope)"))
+        else:
+            checks.append(Check(cat, name, WARN, "not configured", hint))
+    return checks
+
+
+def _deployment_in_scope(project: _Project) -> bool:
+    """Deployment scope from the lock file; projects without one are treated as deployed."""
+    try:
+        lock = read_lock(project.root)
+    except KitError:
+        return True
+    if lock is None:
+        return True
+    return deployment_in_scope(str(lock.selection.get("deployment", "")))
+
+
+def _code_comments(project: _Project) -> list[Check]:
+    """CODE-45 to CODE-47: comments in English that describe current behaviour (heuristic)."""
+    cat = "Quality"
+    name = "Code comments (English, current behaviour)"
+    findings, files = scan_comments(project.root)
+    if files == 0:
+        return [Check(cat, name, INFO, "no source files")]
+    if not findings:
+        return [Check(cat, name, PASS, f"{files} file(s)")]
+    sample = ", ".join(f"{f.path}:{f.line} ({f.kind})" for f in findings[:5])
+    more = f" and {len(findings) - 5} more" if len(findings) > 5 else ""
     return [
-        Check(cat, name, PASS) if detect() else Check(cat, name, WARN, "not configured", hint)
-        for name, detect, hint in detections
+        Check(
+            cat,
+            name,
+            WARN,
+            f"{len(findings)} comment(s) to review: {sample}{more}",
+            "Write comments in English describing current behaviour; change history belongs in "
+            "CHANGELOG.md or an ADR (CODE-45-47). Mark a deliberate exception with "
+            "'ai-kit: allow-comment'.",
+        )
     ]
 
 

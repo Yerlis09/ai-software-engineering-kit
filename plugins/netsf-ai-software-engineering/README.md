@@ -6,7 +6,7 @@ standards that matter for the task, implements, tests and reports — and asks f
 before anything risky.
 
 It is a thin layer over the **AI Software Engineering Kit** (the "core", `ai-project`), which
-holds the engineering knowledge. Plugin `1.0.0` works with core `>=1.2.0,<1.3.0`.
+holds the engineering knowledge. Plugin `1.1.0` works with core `>=1.3.0,<1.4.0`.
 
 ---
 
@@ -46,6 +46,23 @@ The plugin will explain the plan, do the work, run the tests and tell you what c
 /netsf-ai-software-engineering:plan Add a column "region" to the customers table
 ```
 
+You can also just say it: *"dry run"*, *"analysis only"*, *"do not modify anything"*,
+*"solo análisis"*. From then on the plugin **blocks** file changes, installs, Git and deployment
+actions — not just asks Claude to avoid them — until you say *"exit dry-run"* (or *"ya puedes
+modificar"*, *"apply the plan"*). *"Do not commit"* or *"do not push"* block only that action.
+
+### What it decides for you, and what it asks
+
+- It chooses the language, framework, libraries and structure itself and explains why. You do
+  not need to know profiles, frameworks or agent names.
+- It asks you only what it cannot know: what a business term means, **which database** to use
+  when your idea needs to store data (it recommends ClickHouse, the team default), details of
+  external systems, and real server or environment values. It never invents them.
+- A file-only tool (for example "receive an Excel file and return a report") gets no database.
+- Docker, Kubernetes and pipelines are added only when you ask for deployment.
+- It never uses a Git repository of a parent folder for your project, and it commits or pushes
+  only when you say so.
+
 ### What you will see
 
 | Message | What it means |
@@ -53,7 +70,9 @@ The plugin will explain the plan, do the work, run the tests and tell you what c
 | `Risk: LOW / MEDIUM` | Normal work. It proceeds and reports. |
 | `Risk: HIGH / CRITICAL — approval required` | It stops and waits for you to say "yes, proceed". |
 | `BLOCKED` | The request is unsafe (for example, uploading passwords). It will not do it. |
-| A confirmation prompt from Claude Code | The safety guard caught a dangerous command (force push, deleting folders, reading `.env`…). Read it before accepting. |
+| A confirmation prompt from Claude Code | The safety guard caught a dangerous or outward action (force push, deleting folders, reading `.env`, commit, push, `git init`…). Read it before accepting. |
+| `QUESTIONS FOR THE USER` | Decisions only you can make (for example the database). Answer them; technical choices are not asked. |
+| `restriction ON` / a denied change | You asked for a dry run or not to change something. Say "exit dry-run" to allow changes. |
 | `NOT VERIFIED` | Something could not be checked. It is never reported as passed. |
 
 ---
@@ -73,9 +92,9 @@ automatically; you do not need to call them.
 ## What it measured
 
 On 9 representative tasks (FastAPI, ClickHouse, React, Docker, Kubernetes, automation,
-microservice, Python backend and a Kit-initialised project), the routed context was **82% smaller**
-than loading every standard (67,774 vs 376,255 estimated tokens), with routing in tens of milliseconds
-(12–53 ms measured; it varies with the machine and its load).
+microservice, Python backend and a Kit-initialised project), the routed context was **80% smaller**
+than loading every standard (69,576 vs 350,027 estimated tokens), with routing in tens of milliseconds
+(19–54 ms measured; it varies with the machine and its load).
 Details and how to reproduce: [docs/BENCHMARKING.md](docs/BENCHMARKING.md). Answer quality has not
 been measured with a real model evaluation yet (NOT VERIFIED).
 

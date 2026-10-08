@@ -11,21 +11,29 @@ the core) with the **routed** package emitted by the bridge, and the `--lean` va
 master skill. Tokens are estimates (characters / 4), not billed tokens. Times are medians of 5
 runs and depend on the machine.
 
-Results on 2026-10-07 (Windows 11, Python 3.12, core 1.2.0, plugin 1.0.0):
+Results on 2026-10-07 (Windows 11, Python 3.12, core 1.3.0, plugin 1.1.0; the core of this
+repository, with no other `ai-project` on `PATH`):
 
 | Scenario | Task | State | Direct tok | Routed tok | Lean tok | Lean saving | Files (routed/lean) | Routing ms | Materialize ms |
 |---|---|---|---|---|---|---|---|---|---|
-| kit-project | Create a FastAPI endpoint to retrieve cells | OPTIMIZED | 44254 | 13106 | 9420 | 78.7% | 13/11 | 26.2 | 19.1 |
-| clickhouse | Fix ClickHouse query | DEGRADED | 40630 | 10378 | 8110 | 80.0% | 10/9 | 12.8 | 16.8 |
-| docker | Add a health check to the Docker image | DEGRADED | 44075 | 6319 | 4051 | 90.8% | 5/4 | 11.6 | 7.9 |
-| fastapi | Create a FastAPI endpoint to retrieve cells | DEGRADED | 41955 | 11156 | 8889 | 78.8% | 11/10 | 14.2 | 16.7 |
-| frontend | Improve React dashboard performance | DEGRADED | 39164 | 11153 | 8886 | 77.3% | 12/11 | 14.2 | 20.6 |
-| kubernetes | Deploy service to Kubernetes | DEGRADED | 41955 | 9113 | 6845 | 83.7% | 8/7 | 11.7 | 15.7 |
-| microservice | Review the authentication implementation | DEGRADED | 41945 | 8082 | 5814 | 86.1% | 8/7 | 13.0 | 14.0 |
-| python_automation | Refactor a Python service that reads the Excel report | DEGRADED | 38202 | 9335 | 7067 | 81.5% | 9/8 | 12.4 | 15.8 |
-| python_backend | Add an endpoint to list invoices | DEGRADED | 44075 | 10959 | 8692 | 80.3% | 11/10 | 13.5 | 17.6 |
+| kit-project | Create a FastAPI endpoint to retrieve cells | OPTIMIZED | 38262 | 13269 | 9569 | 75.0% | 13/11 | 45.7 | 67.0 |
+| clickhouse | Fix ClickHouse query | DEGRADED | 37006 | 10579 | 8175 | 77.9% | 10/9 | 28.5 | 40.3 |
+| docker | Add a health check to the Docker image | DEGRADED | 43874 | 6884 | 4480 | 89.8% | 5/4 | 20.6 | 18.6 |
+| fastapi | Create a FastAPI endpoint to retrieve cells | DEGRADED | 36916 | 11421 | 9017 | 75.6% | 11/10 | 24.9 | 38.5 |
+| frontend | Improve React dashboard performance | DEGRADED | 34125 | 11298 | 8894 | 73.9% | 12/11 | 23.8 | 41.2 |
+| kubernetes | Deploy service to Kubernetes | DEGRADED | 43119 | 9678 | 7274 | 83.1% | 8/7 | 21.2 | 31.9 |
+| microservice | Review the authentication implementation | DEGRADED | 43110 | 8226 | 5822 | 86.5% | 8/7 | 23.3 | 22.3 |
+| python_automation | Refactor a Python service that reads the Excel report | DEGRADED | 34523 | 9929 | 7525 | 78.2% | 9/8 | 21.9 | 37.5 |
+| python_backend | Add an endpoint to list invoices | DEGRADED | 39092 | 11224 | 8820 | 77.4% | 11/10 | 29.4 | 60.0 |
 
-Total over 9 tasks: direct 376,255 tokens, lean 67,774 tokens (**82.0% less**).
+Total over 9 tasks: direct 350,027 tokens, lean 69,576 tokens (**80.1% less**). A second run
+gave identical states, specialists, token counts and file counts; times varied between runs
+(routing 19–54 ms).
+
+Compared with core 1.2.0 / plugin 1.0.0 (lean 67,774 vs direct 376,255, 82.0% less): the policy
+rules of core 1.3 add about 2.7% to the routed packages, and the direct baseline is smaller
+because projects without deployment in scope no longer install the Docker, Kubernetes, NGINX and
+CI guides.
 
 Scenario projects are the small synthetic ones in `tests/scenarios.py`; `DEGRADED` means the core
 simulated the detected profile because the project was not initialised with the Kit.
@@ -35,7 +43,7 @@ simulated the detected profile because the project was not initialised with the 
 | Component | Always loaded | On invoke |
 |---|---|---|
 | Whole plugin (skill/agent descriptions) | ~910 tokens | — |
-| `netsf-ai-engineer` skill | ~90 | ~1.8k |
+| `netsf-ai-engineer` skill | ~90 | ~2.5k |
 | Each agent | — | ~380 |
 | Hook | 0 (harness only) | 0 |
 
@@ -45,9 +53,9 @@ These are Claude Code's own estimates.
 
 Fewer tokens is only useful if answers stay correct. Measuring that needs real model runs:
 
-- `evals/` holds prepared `claude plugin eval` cases (task prompt plus graders for expected
-  specialists, safety behaviour, approval gates and no over-engineering), run with and without
-  the plugin (ablation).
+- `evals/` holds 11 prepared `claude plugin eval` cases (task prompt plus graders for expected
+  specialists, safety behaviour, approval gates, no over-engineering, database clarification,
+  file-only work and dry runs), run with and without the plugin (ablation).
 - **They have not been executed.** Running them calls the model on your credential; it needs
   explicit authorisation: `claude plugin eval plugins/netsf-ai-software-engineering`.
 

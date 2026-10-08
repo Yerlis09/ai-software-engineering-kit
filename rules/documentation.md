@@ -14,6 +14,9 @@ Levels follow RFC 2119: **MUST**, **SHOULD**, **MAY**. Owner agent: `agents/11-d
 - **DOC-04** — MUST NOT duplicate information; link to the single source of truth instead.
 - **DOC-05** — MUST NOT include real secrets, internal credentials or personal data in docs or examples.
 - **DOC-06** — SHOULD remove or update obsolete documentation rather than leaving it to rot.
+- **DOC-30** — MUST describe the current system in English, not its implementation history (history: `CHANGELOG.md`, ADRs).
+- **DOC-31** — MUST, before declaring a task done, update docs affected by changed public behaviour, API, configuration, deployment, architecture or business rules.
+- **DOC-32** — MUST NOT state that something was tested or deployed unless it was executed; otherwise **NOT VALIDATED**.
 
 ## README
 
@@ -24,7 +27,7 @@ Levels follow RFC 2119: **MUST**, **SHOULD**, **MAY**. Owner agent: `agents/11-d
   - **Getting started** — install, configure (using `.env.example` placeholders only), run locally.
   - **Configuration** — environment variables table (name, purpose, default, required) and where secrets come from.
   - **Testing** — how to run unit, integration and end-to-end tests.
-  - **Deployment** — Docker build and Kubernetes (RKE) Staging/Prod deployment.
+  - **Deployment** — when deployment is in scope, Docker build and Kubernetes (RKE) Staging/Prod deployment; otherwise state that the project is not deployed yet.
   - **Contributing** — branching, merge request process on git.netsf.fr, coding rules.
   - **Support / owners** — team and contacts.
 - **DOC-08** — MUST ensure the "Getting started" steps work on a clean machine.
@@ -52,7 +55,7 @@ Levels follow RFC 2119: **MUST**, **SHOULD**, **MAY**. Owner agent: `agents/11-d
 
 ## Code-level documentation
 
-- **DOC-19** — MUST document public APIs (modules, classes, functions) with docstrings/doc comments: purpose, parameters, return, errors.
+- **DOC-19** — MUST document public APIs and every non-obvious module, class or function with docstrings/doc comments describing current behaviour: purpose, parameters, return, errors (see `rules/coding.md` CODE-46/47).
 - **DOC-20** — SHOULD comment *why* (constraints, trade-offs, workarounds), not *what*.
 - **DOC-21** — MUST publish HTTP API contracts (e.g. OpenAPI) and keep them generated from or validated against the code.
 

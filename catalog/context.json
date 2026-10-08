@@ -144,6 +144,7 @@
         "Functions and modules": {"triggers": ["function*", "module*", "refactor*"]},
         "Types and contracts": {"triggers": ["type*", "contract*", "interface*"]},
         "Observability by design": {"triggers": ["log*", "metric*"]},
+        "Language, docstrings and comments": {"triggers": ["comment*", "docstring*", "document*", "english", "language", "naming", "log*", "new project", "scaffold*", "bootstrap", "implement*", "creat*", "endpoint*", "refactor*"]},
         "Comments and dead code": {"triggers": ["comment*", "dead code"]},
         "Formatting and tooling": {"triggers": ["format*", "lint*"]},
         "Dependencies": {"triggers": ["dependenc*", "package*", "library"]},
@@ -156,6 +157,7 @@
       "sections": {
         "Proportionality": {"always": true},
         "Dependency direction": {"always": true},
+        "Scope and decisions": {"triggers": ["requirement*", "new project", "project", "scaffold*", "bootstrap", "api", "service*", "backend", "persist*", "database", "storage", "store", "deploy*", "docker*", "kubernetes", "k8s", "rke", "nginx", "infra*", "git", "repositor*", "file*", "excel", "csv", "upload*", "manage", "crud"]},
         "Structure and boundaries": {"triggers": ["module*", "boundar*", "structure", "layer*"]},
         "Integration and APIs": {"triggers": ["api", "endpoint*", "integration*", "http", "rest", "contract*"]},
         "Distribution": {"triggers": ["microservice*", "distribut*", "event*", "queue*"]},

@@ -1,6 +1,11 @@
 # Architecture — {{ project_name }}
 
 > Project-owned. Keep diagrams in sync with the code (see `.ai/agents/11-documentation.md`).
+>
+> Scope: database **{{ database_title }}**; deployment **{{ deployment_title }}**.
+> Elements marked *(if deployed)* and the Deployment section apply only when deployment is
+> in scope. Persistence is added only when the requirements need it and the database has
+> been chosen. Remove what does not apply.
 
 ## Overview
 
@@ -13,7 +18,7 @@ between them is the API specification (OpenAPI), versioned with the code.
 
 ```mermaid
 flowchart LR
-    browser([Browser]) -->|HTTPS| nginx[NGINX]
+    browser([Browser]) -->|HTTPS| nginx[NGINX<br/>(if deployed)]
     nginx -->|/ static| spa[Frontend SPA]
     nginx -->|/api| api[Backend API]
     api --> db[("{{ database_title }}")]
@@ -52,7 +57,7 @@ sequenceDiagram
     SPA-->>U: updated view
 ```
 
-## Deployment
+## Deployment (if deployed)
 
 ```mermaid
 flowchart LR
