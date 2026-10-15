@@ -51,6 +51,14 @@ You can also just say it: *"dry run"*, *"analysis only"*, *"do not modify anythi
 actions — not just asks Claude to avoid them — until you say *"exit dry-run"* (or *"ya puedes
 modificar"*, *"apply the plan"*). *"Do not commit"* or *"do not push"* block only that action.
 
+### One message is enough
+
+Give it a requirement, a user story or a bug report in one message. It works out the project,
+the files to change and how to test them, then implements, tests, fixes its own mistakes (up to 5
+attempts), updates the documentation and reports — without you having to say "continue",
+"run the tests" or "add comments". It stops only when approval is really needed (risky actions)
+or when it needs a decision only you can make, and then it asks everything at once.
+
 ### What it decides for you, and what it asks
 
 - It chooses the language, framework, libraries and structure itself and explains why. You do
@@ -94,7 +102,7 @@ automatically; you do not need to call them.
 On 9 representative tasks (FastAPI, ClickHouse, React, Docker, Kubernetes, automation,
 microservice, Python backend and a Kit-initialised project), the routed context was **80% smaller**
 than loading every standard (69,576 vs 350,027 estimated tokens), with routing in tens of milliseconds
-(19–54 ms measured; it varies with the machine and its load).
+(19–57 ms measured; it varies with the machine and its load).
 Details and how to reproduce: [docs/BENCHMARKING.md](docs/BENCHMARKING.md). Answer quality has not
 been measured with a real model evaluation yet (NOT VERIFIED).
 

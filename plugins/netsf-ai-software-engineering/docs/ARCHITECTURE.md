@@ -20,8 +20,8 @@ agents/*.md                     13 thin specialist adapters
 hooks/hooks.json                PreToolUse safety guard + UserPromptSubmit restrictions
 scripts/netsf_bridge.py         bridge CLI entry point
 scripts/netsf_guard.py          hook entry point (fail-safe)
-scripts/netsf/                  bridge, core, detect, scope, risk, plan, guard, readonly, safety
-                                (stdlib only)
+scripts/netsf/                  bridge, core, detect, scope, understand, autonomy, risk, plan,
+                                guard, readonly, safety (stdlib only)
 benchmarks/                     reproducible context benchmark
 tests/                          pytest suite
 ```
@@ -29,15 +29,28 @@ tests/                          pytest suite
 ## Request flow
 
 ```
-user request
+user request (one message: requirement, user story, bug report or document)
   └─ netsf-ai-engineer skill
-       1 risk      bridge risk      → LOW/MEDIUM/HIGH/CRITICAL, BLOCKED
-       2 detect    bridge detect    → mode kit/existing/new, technologies with confidence+evidence
-       3 plan      bridge plan      → specialists, files, impact, approval gate (dry run)
-       4 context   bridge context   → core selects; bridge materialises and labels trust
-       5 delegate  netsf-ai-software-engineering:<specialist> (each loads --focus <role> --lean)
-       6 implement → test → repair (≤5) → validate → report with REQ traceability
+       1 bridge start → ENGINEERING BRIEF, one call:
+           risk (risk.py) · detection (detect.py) · scope (scope.py) · core routing, ranking,
+           budget (ai-project context) · lean materialisation (core.py) · task-focused
+           understanding (understand.py: relevant files, existing routes, test/lint commands,
+           docs) · decision (autonomy.py)
+       2 decision
+           PROCEED        → every phase now, no further prompts
+           ASK_APPROVAL   → one consolidated approval (HIGH/CRITICAL), then every phase
+           ASK_QUESTIONS  → one message with the blocking questions, then every phase
+           READ_ONLY      → analyse, plan, report; no change (also enforced by the hook)
+           BLOCKED        → refuse
+       3 implement → tests → run the brief's commands → repair (≤5, counted by the hook)
+         → documentation → validation → report (VERIFIED / INFERRED / NOT VERIFIED)
+       execution inline (simple/normal tasks on existing projects) or delegated to
+       netsf-ai-software-engineering:<specialist> agents (complex tasks, new projects)
 ```
+
+Informational findings never stop the workflow: an unrelated parent Git repository, or an
+existing route that may already implement the task (reported so the change extends it instead of
+duplicating it).
 
 ## Routing states
 
@@ -59,7 +72,7 @@ The core returns paths and H2 line ranges. The bridge reads them (bounded, path-
   Wrapped in `UNTRUSTED PROJECT DATA` markers and scanned for prompt-injection patterns.
 
 `--lean` omits `AGENTS.md` and `00-master.md` because the master skill already plays that role
-(measured: 13,269 → 9,569 estimated tokens on the Kit demo task).
+(measured: 13,268 → 9,569 estimated tokens on the Kit demo task).
 
 ## Why plugin-side detection, risk and plan
 

@@ -47,6 +47,11 @@ lock schema (1) and the JSON keys of `ai-project context` are unchanged; `init` 
 ### Added
 
 - `ai-project context --deployment` for simulated projects.
+- Task classification: `json`, `404` and `status code` signal API work (a user story that
+  returns JSON and 404 now routes to the backend specialist).
+- `agents/00-master.md`: at LOW/MEDIUM risk with nothing blocking, all lifecycle steps run
+  without waiting for new prompts; otherwise the agent asks once and continues (the
+  single-assistant paragraph was condensed to keep the L0 budget).
 - `doctor` check "Code comments (English, current behaviour)": heuristic WARN for
   change-history and non-English comments/docstrings (`cli/ai_project/code_hygiene.py`;
   `ai-kit: allow-comment` marks an exception).
@@ -86,10 +91,25 @@ Separate deliverable in `plugins/netsf-ai-software-engineering/` with the market
   commands). Claude Code plan mode counts as read-only.
 - Guard: `git init`, `git commit`, `git push` and tag creation ask for confirmation; risk
   assessment rates Git history/remote changes HIGH (approval required).
-- 11 prepared (not executed) `claude plugin eval` cases, including database clarification,
-  file-only workflow and dry run.
+- **Autonomous workflow** from one request: `bridge start` returns the engineering brief in one
+  call (risk, detection, scope, routing, lean context, task-focused understanding in
+  `understand.py`: relevant files, existing routes, test/lint commands, docs to review) and a
+  deterministic decision in `autonomy.py` (`PROCEED`, `ASK_APPROVAL`, `ASK_QUESTIONS`,
+  `READ_ONLY`, `BLOCKED`), inline-or-delegate execution, phases, repair policy, report
+  sections (VERIFIED / INFERRED / NOT VERIFIED) and autonomy metrics. The master skill is
+  rewritten around it (~1.6k tokens on invoke, down from ~2.5k).
+- Plans no longer list the parent-repository note as a question unless the task involves Git;
+  it is informational and never stops the workflow.
+- Bounded repair enforced by the hook: test-runner commands are counted between user prompts;
+  after a baseline, a validation and 5 repair runs the next run asks for confirmation.
+- Autonomy benchmark (`benchmarks/autonomy_benchmark.py`) and 12 prepared (not executed)
+  `claude plugin eval` cases, including database clarification, file-only workflow, dry run
+  and a single-prompt user story.
 - Plugin tests changed intentionally: core compatibility range 1.3; `git commit`/`git push`
-  moved from "normal" to "require confirmation"; hooks now include `UserPromptSubmit`.
+  moved from "normal" to "require confirmation"; hooks now include `UserPromptSubmit`; the
+  master-skill content test expects `start --task` instead of `risk --task`; the
+  parent-repository plan test asserts the note is not a question for unrelated tasks (and is
+  one for Git tasks).
 - `pyproject.toml`: plugin tests in `testpaths`/`pythonpath`, ruff `src`/per-file-ignores.
 
 ## [1.2.0] - 2026-10-06

@@ -181,7 +181,7 @@ FIND_WRITING_ACTIONS = {
     "-fprintf",
     "-fls",
 }
-BRIDGE_READ = {"check", "detect", "risk", "plan", "context"}
+BRIDGE_READ = {"check", "detect", "risk", "plan", "context", "start"}
 CORE_READ = {"context", "doctor", "version", "list", "help"}
 _SEGMENT_SPLIT = re.compile(r"&&|\|\||;|\||\n")
 _HARMLESS_REDIRECT = re.compile(r"\d?>\s*(&1|/dev/null|\$null)", re.I)
@@ -279,6 +279,7 @@ def prompt_hook(event: dict[str, Any]) -> str:
     if not isinstance(prompt, str):
         return ""
     session = event.get("session_id")
+    reset_test_runs(session)
     try:
         current, old_trigger = load_state(session)
     except ValueError:
@@ -340,6 +341,55 @@ def restriction(event: dict[str, Any]) -> tuple[str, str] | None:
                 "read-only mode: only read-only commands are allowed "
                 "(listing, reading, searching, git status/log/diff)" + hint
             )
+    return None
+
+
+# Bounded repair: test runs are counted between two user prompts. A baseline run, the first
+# validation and MAX_REPAIR_CYCLES repair runs are allowed; one more asks the user.
+MAX_REPAIR_CYCLES = 5
+MAX_TEST_RUNS = 2 + MAX_REPAIR_CYCLES
+_TEST_RUNNER = re.compile(
+    r"\b(pytest|py\.test|unittest|tox|nox|jest|vitest|mocha|phpunit|rspec)\b"
+    r"|\b(npm|pnpm|yarn)\s+(run\s+)?test\b|\bgo\s+test\b|\bmvn\b[^\n]*\btest\b"
+    r"|\bgradlew?\b[^\n]*\btest\b|\bdotnet\s+test\b|\bcargo\s+test\b",
+    re.I,
+)
+
+
+def _runs_file(session_id: Any) -> Path:
+    return _state_file(session_id).with_suffix(".runs")
+
+
+def reset_test_runs(session_id: Any) -> None:
+    """A new user prompt starts a new repair budget."""
+    _runs_file(session_id).unlink(missing_ok=True)
+
+
+def repair_limit(event: dict[str, Any]) -> tuple[str, str] | None:
+    """PreToolUse: ask once the test runs since the last user prompt exceed the repair budget."""
+    if event.get("tool_name") not in SHELL_TOOLS:
+        return None
+    raw_input = event.get("tool_input")
+    command = raw_input.get("command") if isinstance(raw_input, dict) else None
+    if not isinstance(command, str) or not _TEST_RUNNER.search(command):
+        return None
+    path = _runs_file(event.get("session_id"))
+    try:
+        runs = int(path.read_text(encoding="utf-8")) if path.is_file() else 0
+    except (OSError, ValueError):
+        runs = 0
+    runs += 1
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(str(runs), encoding="utf-8")
+    except OSError:
+        return None
+    if runs > MAX_TEST_RUNS:
+        return "ask", (
+            f"repair limit reached: {runs - 1} test runs since your last message (baseline, "
+            f"validation and {MAX_REPAIR_CYCLES} repair cycles). Stop and report, or confirm to "
+            "continue"
+        )
     return None
 
 

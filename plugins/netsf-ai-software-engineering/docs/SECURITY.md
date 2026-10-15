@@ -61,6 +61,13 @@ release instruction); "Add a --dry-run option" and similar feature requests do n
 text such as `/netsf-ai-software-engineering:plan …`, and that a hook `deny` is honoured under
 `bypassPermissions`. Both are covered by deterministic tests of the hook script only.
 
+## Bounded repair
+
+The `PreToolUse` hook counts test-runner commands (`pytest`, `npm test`, `go test`, `mvn test`,
+`dotnet test`…) between two user prompts. A baseline run, the first validation and 5 repair runs
+are allowed; the next run asks the user to confirm, so the repair loop cannot continue silently.
+A new user prompt starts a new budget.
+
 ## Prompt-injection defence
 
 - Context blocks that are not byte-identical to the installed Kit are wrapped in

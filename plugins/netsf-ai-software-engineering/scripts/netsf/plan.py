@@ -152,7 +152,7 @@ def build_plan(
     scope = meta.get("scope") or {}
     git = meta.get("git") or det.git
     questions = list(scope.get("questions", []))
-    if not git.get("own_repository"):
+    if not git.get("own_repository") and any("Git history" in r for r in risk.reasons):
         questions.append(git_note(git))
     test_fw = det.values("testing", 0.3)
     return {

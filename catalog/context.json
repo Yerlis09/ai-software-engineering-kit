@@ -271,7 +271,7 @@
     "database":      {"triggers": {"database": 2, "sql": 2, "migration*": 2, "postgres*": 2, "clickhouse": 2, "mongo*": 2, "sql server": 2,
                                    "query": 1, "queries": 1, "schema": 1, "index": 1, "table*": 1, "transaction*": 1},
                       "requires": ["03-database"], "recommends": {"08-performance": 0.4}, "workflow": "new-feature"},
-    "api":           {"triggers": {"api": 2, "endpoint*": 2, "graphql": 2, "webhook*": 2, "rest": 1, "route": 1, "routes": 1, "openapi": 1, "http": 1},
+    "api":           {"triggers": {"api": 2, "endpoint*": 2, "graphql": 2, "webhook*": 2, "rest": 1, "route": 1, "routes": 1, "openapi": 1, "http": 1, "json": 1, "404": 1, "status code": 1},
                       "requires": ["02-backend"], "recommends": {"09-security": 0.5}, "workflow": "new-feature"},
     "frontend":      {"triggers": {"frontend": 2, "react": 2, "angular": 2, "ui": 2, "accessibility": 2, "component*": 1, "page": 1, "dashboard": 1,
                                    "css": 1, "form": 1},

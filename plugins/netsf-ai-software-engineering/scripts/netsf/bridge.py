@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from netsf import CORE_RANGE, PLUGIN_VERSION
+from netsf.autonomy import decide, metrics
 from netsf.core import (
     BLOCKED,
     DEGRADED,
@@ -21,11 +22,12 @@ from netsf.core import (
     render_markdown,
     run_core,
 )
-from netsf.detect import UNCERTAIN, Detection, detect, kit_selection, snapshot
+from netsf.detect import UNCERTAIN, Detection, detect, git_note, kit_selection, snapshot
 from netsf.plan import build_plan, render_plan, specialists
 from netsf.risk import assess
 from netsf.safety import clean_task
 from netsf.scope import assess_scope, infer_project
+from netsf.understand import understand
 
 DIRECT_GUIDANCE = (
     "DIRECT MODE: the Kit core is not available, so no curated context was loaded. Work with "
@@ -351,6 +353,121 @@ def cmd_plan(args: argparse.Namespace) -> int:
     return 1 if risk.blocked else 0
 
 
+def cmd_start(args: argparse.Namespace) -> int:
+    """One call for the whole pre-implementation workflow: the engineering brief.
+
+    Risk, project detection, scope, routing, minimal context, task-focused understanding and the
+    workflow decision (PROCEED / ASK_APPROVAL / ASK_QUESTIONS / READ_ONLY / BLOCKED).
+    """
+    task = clean_task(args.task)
+    root = _root(args.path)
+    det = detect(root)
+    risk = assess(task)
+    info = core_info()
+    notes: list[str] = []
+    package: dict[str, Any] | None = None
+    project_mode = False
+    if risk.blocked:
+        state = BLOCKED
+        meta = {"scope": assess_scope(task).to_dict(), "git": det.git, "project_type": None}
+        notes.append("Task refused: " + "; ".join(risk.reasons))
+    else:
+        state, package, notes, project_mode, meta = route(task, root, info, det, _overrides(args))
+    mat = None
+    if package is not None:
+        mat = materialize(
+            package,
+            project_mode=project_mode,
+            root=root,
+            kit_root=info.kit_root,
+            managed_hashes=load_lock_hashes(root) if project_mode else {},
+            lean=True,
+        )
+        if mat.state == BLOCKED:
+            state = BLOCKED
+        notes += mat.notes
+    understanding = understand(task, root) if state != BLOCKED else None
+    chosen = specialists(package)
+    scope = assess_scope(
+        task, det.values("databases", UNCERTAIN), det.values("deployment", UNCERTAIN)
+    )
+    decision = decide(task, risk, scope, understanding, package, chosen, det.mode, det.git)
+    if state == BLOCKED and decision["action"] != "BLOCKED":
+        decision.update(action="BLOCKED", reasons=notes[:1] or ["integrity check failed"])
+    context = _context_data(task, state, package, mat, notes, risk.to_dict(), None, meta)
+    data = {
+        "plugin_version": PLUGIN_VERSION,
+        "task": task,
+        "decision": decision,
+        "project": {
+            "path": str(root),
+            "mode": det.mode,
+            "type": meta.get("project_type"),
+            "technology": snapshot(det),
+            "git": git_note(det.git),
+        },
+        "risk": risk.to_dict(),
+        "scope": meta.get("scope"),
+        "routing": {
+            "state": state,
+            "classification": context["classification"],
+            "budget": context["budget"],
+        },
+        "understanding": understanding.to_dict() if understanding else None,
+        "metrics": {
+            **context["metrics"],
+            "autonomy": metrics(decision, context["metrics"], det.files_read, understanding),
+        },
+        "notes": notes,
+        "guidance": context["guidance"],
+    }
+    if args.json:
+        _print(data, True, "")
+    else:
+        print(_start_text(data, mat))
+    return 1 if decision["action"] == "BLOCKED" else 0
+
+
+def _start_text(data: dict[str, Any], mat) -> str:
+    d, und = data["decision"], data["understanding"] or {}
+    lines = [
+        f"NETSF ENGINEERING BRIEF  decision={d['action']}  risk={data['risk']['level']}  "
+        f"routing={data['routing']['state']}",
+        f"why: {'; '.join(d['reasons'])}",
+    ]
+    if d["questions"]:
+        lines += ["ASK THE USER ONCE:", *[f"  - {q}" for q in d["questions"]]]
+    if d["restrictions"]:
+        lines.append(f"restrictions requested by the user: {', '.join(d['restrictions'])}")
+    project_type = data["project"]["type"] or {}
+    scope = data["scope"] or {}
+    lines += [
+        f"project: {data['project']['mode']}, {project_type.get('profile')}/"
+        f"{project_type.get('technology')} (from {project_type.get('source')})",
+        f"database: {scope.get('database')} - {scope.get('database_reason')}",
+        f"deployment: {'in scope' if scope.get('deployment_in_scope') else 'not in scope'} - "
+        f"{scope.get('deployment_reason')}",
+        f"execution: {d['execution']['mode']} ({d['execution']['why']}); specialists: "
+        f"{', '.join(d['execution']['specialists']) or 'none'}",
+        "relevant files (INFERRED):",
+        *[f"  - {f['path']} [{f['role']}]" for f in und.get("relevant_files", [])],
+        f"test commands (INFERRED): {', '.join(und.get('test_commands', [])) or 'none found'}",
+        f"lint commands (INFERRED): {', '.join(und.get('lint_commands', [])) or 'none found'}",
+        f"docs to review: {', '.join(und.get('documentation_targets', [])) or 'none found'}",
+        *[f"note: {n}" for n in d["notes"] + data["notes"]],
+        "PHASES (run them all without waiting for new prompts unless the decision says ASK):",
+        *[f"  {i}. {p}" for i, p in enumerate(d["phases"], start=1)],
+        f"repair: max {d['repair_policy']['max_cycles']} cycles; repair when "
+        f"{d['repair_policy']['repair_when']}; stop when {d['repair_policy']['stop_when']}",
+        "REPORT SECTIONS: " + " | ".join(d["report_sections"]),
+        "metrics: " + json.dumps(data["metrics"]["autonomy"]),
+    ]
+    if data["guidance"]:
+        lines.append(data["guidance"])
+    body = render_markdown(mat) if mat is not None and d["action"] != "BLOCKED" else ""
+    return "\n".join(lines) + ("\n\nCONTEXT PACKAGE\n" + body if body else "")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="netsf_bridge", description="NETSF Kit adapter")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -383,10 +500,17 @@ def build_parser() -> argparse.ArgumentParser:
     pln.add_argument("--json", action="store_true")
     pln.add_argument("--profile", help="advanced: Kit profile instead of the inferred one")
     pln.add_argument("--technology", help="advanced: Kit technology (with --profile)")
+    srt = sub.add_parser("start", help="engineering brief: decision, plan inputs and context")
+    srt.add_argument("--task", required=True)
+    srt.add_argument("--path", default=".")
+    srt.add_argument("--json", action="store_true")
+    srt.add_argument("--profile", help="advanced: Kit profile instead of the inferred one")
+    srt.add_argument("--technology", help="advanced: Kit technology (with --profile)")
     return parser
 
 
 COMMANDS = {
+    "start": cmd_start,
     "check": cmd_check,
     "detect": cmd_detect,
     "context": cmd_context,

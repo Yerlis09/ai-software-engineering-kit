@@ -209,7 +209,10 @@ def test_plan_reports_the_parent_repository(tmp_path: Path) -> None:
     _, plan = bridge_json("plan", "--path", str(child), "--task", "Fix a typo in the README")
     assert plan["git"]["parent_repository"]
     assert "not used for this project" in plan["git"]["note"]
-    assert any("git init" in q for q in plan["questions_for_user"])
+    # Informational only: a task that does not involve Git must not stop for a Git question.
+    assert not any("git init" in q for q in plan["questions_for_user"])
+    _, git_plan = bridge_json("plan", "--path", str(child), "--task", "Commit the changes")
+    assert any("git init" in q for q in git_plan["questions_for_user"])
 
 
 # Git risk -------------------------------------------------------------------------------------

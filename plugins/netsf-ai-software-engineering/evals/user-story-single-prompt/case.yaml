@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: user-story-single-prompt
+context:
+  scaffold_script: fixture.sh

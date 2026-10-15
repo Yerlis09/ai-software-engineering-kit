@@ -78,19 +78,27 @@ from datetime import datetime
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_random_exponential
 
 
-@retry(retry=retry_if_exception_type(TransientError), wait=wait_random_exponential(max=60), stop=stop_after_attempt(5))
+@retry(
+    retry=retry_if_exception_type(TransientError),
+    wait=wait_random_exponential(max=60),
+    stop=stop_after_attempt(5),
+)
 def fetch_batch(source: Source, since: datetime, limit: int) -> list[Record]:
     return source.fetch(updated_after=since, limit=limit)
 
 
-def run(source: Source, target: Target, checkpoints: CheckpointStore, job: str, batch_size: int = 5000) -> None:
+def run(
+    source: Source, target: Target, checkpoints: CheckpointStore, job: str, batch_size: int = 5000
+) -> None:
     watermark = checkpoints.get(job)
     while batch := fetch_batch(source, watermark, batch_size):
-        valid, rejected = validate(batch)            # schema validation
+        valid, rejected = validate(batch)  # schema validation
         with target.transaction():
-            target.upsert(valid)                     # idempotent merge on natural key
+            target.upsert(valid)  # idempotent merge on natural key
             target.quarantine(rejected)
-        watermark = max(r.updated_at for r in batch)  # real code: keyset on (updated_at, id) to not skip ties
-        checkpoints.set(job, watermark)              # only after commit
+        watermark = max(
+            r.updated_at for r in batch
+        )  # real code: keyset on (updated_at, id) to not skip ties
+        checkpoints.set(job, watermark)  # only after commit
         metrics.rows_loaded.labels(job=job).inc(len(valid))
 ```

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "kit_version": "1.3.0",
-  "source_fingerprint": "bcf330662dd2c32b73d3f8ddc2adcb6690765dcbdaf57370310b3f4efaf26051",
+  "source_fingerprint": "aa332372b034ccac9006aca816f7551c44b57c866321c213cbb162a53fa00fdc",
   "note": "Derived from agents/, rules/, workflows/, stacks/, profiles/, catalog/. Do not edit: regenerate with 'ai-project context --rebuild-graph'.",
   "nodes": [
     {"id":"agent.00-master","layer":"L0","name":"Orchestration, workflow and agent selection","path":".ai/agents/00-master.md","tokens":2404,"type":"AGENT"},

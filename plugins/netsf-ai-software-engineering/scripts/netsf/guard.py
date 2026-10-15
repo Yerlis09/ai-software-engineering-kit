@@ -18,7 +18,7 @@ import json
 import re
 from typing import Any
 
-from netsf.readonly import restriction
+from netsf.readonly import repair_limit, restriction
 
 ASK, DENY = "ask", "deny"
 SHELL_TOOLS = {"Bash", "PowerShell"}
@@ -152,7 +152,7 @@ def hook_output(raw: str) -> str:
     try:
         event = json.loads(raw) if raw.strip() else None
         if isinstance(event, dict):
-            verdict = restriction(event) or evaluate(event)
+            verdict = restriction(event) or evaluate(event) or repair_limit(event)
         else:
             verdict = (ASK, "NETSF guard received no readable input; please confirm")
     except Exception:  # fail-safe: never let a guard error silently allow

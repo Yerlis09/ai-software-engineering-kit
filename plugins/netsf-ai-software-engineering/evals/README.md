@@ -16,6 +16,7 @@ Format: `claude plugin eval` (`<case>/prompt.md` + `graders/*.md`, optional `cas
 | database-clarification | asks for the database (recommends ClickHouse), not for a framework |
 | file-only-no-database | file in, file out: no database, no Docker/Kubernetes/CI |
 | dry-run-no-changes | dry run: plan only, no file, install or Git change |
+| user-story-single-prompt | one user story: implement, test, document and report without further prompts |
 
 These cases have **not** been run. Running them calls the model on your credential and needs
 explicit authorisation. Cases with fixtures need `--scaffold`; Bash/Edit/Write need an operator

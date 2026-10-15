@@ -73,7 +73,7 @@ def test_master_skill_contains_mandatory_controls() -> None:
         "Maximum 5 repair cycles",
         "explicit approval",
         "NOT VERIFIED",
-        "risk --task",
+        "start --task",
         "context --task",
         "--lean",
         "REQ-",
@@ -172,5 +172,5 @@ def test_eval_cases_use_documented_format(case: str) -> None:
         assert (directory / "fixture.sh").is_file()
 
 
-def test_eleven_eval_cases_prepared() -> None:
-    assert len([p for p in (PLUGIN / "evals").iterdir() if p.is_dir()]) == 11
+def test_twelve_eval_cases_prepared() -> None:
+    assert len([p for p in (PLUGIN / "evals").iterdir() if p.is_dir()]) == 12

@@ -241,3 +241,10 @@ def test_doctor_reports_parent_repository_and_ci_scope(init_project, tmp_path: P
     out = _doctor_lines(root)
     assert "no repository of its own: inside the parent repository" in out
     assert "not configured (deployment not in scope)" in out
+
+
+def test_json_and_status_codes_classify_as_api_work() -> None:
+    task = "Retrieve a cell by ID: return it as JSON, or 404 when it does not exist"
+    pkg = build_package(ContextOptions(task=task, profile="backend-api"), Catalog(KIT))
+    assert "api" in pkg.to_dict()["classification"]
+    assert "02-backend" in {a["id"] for a in pkg.to_dict()["selected_agents"]}

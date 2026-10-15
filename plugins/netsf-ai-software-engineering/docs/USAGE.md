@@ -2,9 +2,11 @@
 
 ## Automatic mode
 
-Describe a software task. The `netsf-ai-engineer` skill is model-invoked and runs: risk → detect →
-requirements (`REQ-xxx`) → plan (approval for HIGH/CRITICAL) → `context --lean` → specialists →
-implement → test/repair (max 5 cycles) → validate/document → report with traceability.
+Describe a software task once — a requirement, a user story, a bug report or a document. The
+`netsf-ai-engineer` skill calls `bridge start` once and follows its decision: at LOW/MEDIUM risk
+with nothing blocking it implements, tests, repairs (max 5 cycles), documents, validates and
+reports without further prompts. It stops only to ask for approval (HIGH/CRITICAL risk) or for a
+decision only you can make (for example the database), and then asks once.
 
 ## Commands
 
@@ -19,6 +21,7 @@ implement → test/repair (max 5 cycles) → validate/document → report with t
 All skills and agents call the bridge; you can run it directly:
 
 ```
+python scripts/netsf_bridge.py start --task "..." [--path DIR] [--profile P [--technology T]] [--json]
 python scripts/netsf_bridge.py check [--json]
 python scripts/netsf_bridge.py detect [--path DIR] [--snapshot] [--json]
 python scripts/netsf_bridge.py risk --task "..." [--files a b] [--json]
@@ -50,6 +53,23 @@ Deterministic rules (English and Spanish) on the task text and optional file lis
 | HIGH | migrations, authentication, deleting files, framework upgrades, kubectl/helm/terraform |
 | MEDIUM | add, create, fix, refactor, configuration; any unknown non-empty task |
 | LOW | documentation, typos, comments |
+
+### `start` (engineering brief)
+
+One read-only call that combines risk, detection, scope, routing, the lean context package,
+task-focused understanding and the workflow decision:
+
+| Field | Content |
+|---|---|
+| `decision.action` | `PROCEED`, `ASK_APPROVAL`, `ASK_QUESTIONS`, `READ_ONLY` or `BLOCKED` |
+| `decision.questions` | Only blocking questions (database when persistence is needed, deployment target) |
+| `decision.notes` | Informational findings (parent Git repository, possible existing implementation) |
+| `decision.execution` | `inline` or `delegate`, with the specialists |
+| `decision.phases`, `repair_policy`, `report_sections` | The workflow to run and the report contract |
+| `understanding` | Relevant files with matching lines, existing routes, test and lint commands, docs to review (INFERRED) |
+| `metrics.autonomy` | Prompts required, approvals, questions, specialists, context tokens, files inspected |
+
+The text output ends with the materialised context package.
 
 ### `plan`
 

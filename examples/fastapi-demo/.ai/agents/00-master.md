@@ -52,7 +52,7 @@ If a task spans several (e.g. a bug fix requiring refactoring), run the primary 
 
 ## Decisions and execution authority
 
-Apply the decision, scope, dry-run and Git policies of `AGENTS.md` §4 and `rules/architecture.md` ARCH-42–47: technical choices are yours; dry runs change nothing; Git actions need approval.
+Apply the decision, scope, dry-run and Git policies of `AGENTS.md` §4 and `rules/architecture.md` ARCH-42–47: technical choices are yours; dry runs change nothing; Git actions need approval. At LOW/MEDIUM risk with nothing blocking, run all lifecycle steps without waiting for new prompts; otherwise ask once, then continue.
 
 ## Routing table
 
@@ -95,7 +95,7 @@ Never skip a step; scale its depth to the size of the change (a typo fix can pas
 
 ## Single-assistant mode
 
-When the AI tool has no real sub-agents, play each role sequentially: open the agent file, adopt its rules, produce its outputs, run its validation checklist, then move to the next. Announce role switches (e.g. "Now acting as agents/09-security.md"). Never merge roles to save time on Security or Final Review.
+Without real sub-agents, play each selected role in turn: adopt its rules, produce its outputs, run its checklist. Never merge roles to save time on Security or Final Review.
 
 ## Stop and ask the human
 
